@@ -3,998 +3,500 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#34B53D">
+<meta name="theme-color" content="#0F8A2A">
 <title>Range Caddy</title>
 <style>
   :root {
-    --green: #34B53D;
-    --green-dark: #2A8E30;
-    --green-bg: rgba(52, 181, 61, 0.12);
-    --green-border: rgba(52, 181, 61, 0.32);
-    --bg: #F2F2F7;
+    --green: #0F8A2A;
+    --green-dark: #0A6A20;
+    --green-soft: rgba(15, 138, 42, 0.10);
+    --bg: #FAFAF7;
     --card: #FFFFFF;
-    --card-2: #F7F7FB;
-    --text: #1C1C1E;
-    --text-secondary: #6E6E73;
-    --text-tertiary: #98989D;
-    --border: #E5E5EA;
-    --red: #FF3B30;
-    --orange: #FF9500;
-    --yellow: #FFCC00;
-    --mint: #00C7BE;
-    --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
+    --text: #111111;
+    --muted: #6B7280;
+    --border: #E5E5E0;
+    --red: #C0392B;
+    --yellow: #D4A017;
+    --shadow: 0 2px 8px rgba(0,0,0,0.05);
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #000000;
-      --card: #1C1C1E;
-      --card-2: #2C2C2E;
-      --text: #FFFFFF;
-      --text-secondary: #98989D;
-      --text-tertiary: #6E6E73;
-      --border: #38383A;
-      --shadow: 0 1px 3px rgba(0,0,0,0.4), 0 4px 16px rgba(0,0,0,0.3);
+      --green: #2DBF4C;
+      --green-dark: #28A744;
+      --green-soft: rgba(45, 191, 76, 0.16);
+      --bg: #0A0A0A;
+      --card: #1A1A1A;
+      --text: #F5F5F5;
+      --muted: #9A9A9A;
+      --border: #2A2A2A;
+      --red: #FF5547;
+      --yellow: #F5C842;
+      --shadow: 0 2px 8px rgba(0,0,0,0.4);
     }
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body {
     margin: 0;
-    padding: 0;
     background: var(--bg);
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
     font-size: 17px;
-    line-height: 1.4;
+    line-height: 1.45;
     min-height: 100vh;
-    overscroll-behavior-y: contain;
+    -webkit-text-size-adjust: 100%;
   }
   #app {
-    max-width: 540px;
+    max-width: 480px;
     margin: 0 auto;
-    padding: 16px;
-    padding-bottom: 96px;
-    min-height: 100vh;
+    padding: 24px 20px max(24px, env(safe-area-inset-bottom)) 20px;
   }
-  h1 { font-size: 28px; font-weight: 700; margin: 0 0 4px 0; }
-  h2 { font-size: 22px; font-weight: 700; margin: 0 0 12px 0; }
-  h3 { font-size: 17px; font-weight: 600; margin: 0 0 8px 0; }
-  p { margin: 0 0 8px 0; }
-  .muted { color: var(--text-secondary); font-size: 14px; }
-  .tiny { color: var(--text-tertiary); font-size: 12px; }
 
-  .card {
-    background: var(--card);
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 12px;
-    box-shadow: var(--shadow);
-  }
-  .card-flat {
-    background: var(--card-2);
-    border-radius: 12px;
-    padding: 12px;
-  }
-  .row { display: flex; align-items: center; gap: 8px; }
-  .row.spread { justify-content: space-between; }
-  .col { display: flex; flex-direction: column; gap: 8px; }
+  h1 { font-size: 32px; font-weight: 800; margin: 0; letter-spacing: -0.02em; }
+  h2 { font-size: 24px; font-weight: 700; margin: 0 0 4px 0; letter-spacing: -0.01em; }
+  h3 { font-size: 14px; font-weight: 700; margin: 0 0 12px 0; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  p { margin: 0; }
 
-  /* Top bar */
   .top {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 16px;
+    padding: 8px 0 24px;
   }
-  .top h1 { margin: 0; font-size: 32px; }
-  .top .back {
+  .back {
     background: none; border: none; color: var(--green);
-    font-size: 17px; font-weight: 600; padding: 4px 0; cursor: pointer;
+    font-size: 17px; font-weight: 600; cursor: pointer;
+    padding: 8px 0; margin-left: -4px;
+    font-family: inherit;
   }
-  .top .spacer { width: 60px; }
+  .stepcount { color: var(--muted); font-size: 14px; font-weight: 600; }
 
   /* Buttons */
   .btn {
     border: none;
-    border-radius: 12px;
-    padding: 14px 18px;
-    font-size: 17px;
-    font-weight: 600;
-    cursor: pointer;
-    width: 100%;
-    transition: opacity 0.1s;
-    font-family: inherit;
-  }
-  .btn:active { opacity: 0.7; }
-  .btn-primary { background: var(--green); color: white; }
-  .btn-secondary { background: var(--green-bg); color: var(--green); }
-  .btn-ghost { background: var(--card-2); color: var(--text); }
-  .btn-danger { background: rgba(255, 59, 48, 0.12); color: var(--red); }
-  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-  /* Hero card on home */
-  .hero {
-    background: linear-gradient(135deg, var(--green) 0%, var(--green-dark) 100%);
-    color: white;
-    border-radius: 20px;
-    padding: 20px;
-    margin-bottom: 16px;
-    cursor: pointer;
-    box-shadow: 0 8px 24px rgba(52, 181, 61, 0.3);
-  }
-  .hero h2 { color: white; margin-bottom: 4px; }
-  .hero p { color: rgba(255,255,255,0.85); margin: 0; }
-
-  /* Pills, chips, badges */
-  .pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 4px 10px;
-    border-radius: 99px;
-    background: var(--green-bg);
-    color: var(--green);
-    font-size: 12px;
-    font-weight: 600;
-  }
-  .pill-muted {
-    background: var(--card-2);
-    color: var(--text-secondary);
-  }
-  .pill.red { background: rgba(255,59,48,0.12); color: var(--red); }
-  .pill.orange { background: rgba(255,149,0,0.12); color: var(--orange); }
-
-  /* Club chips (selectable) */
-  .chip-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 8px;
-  }
-  .chip {
-    background: var(--card-2);
-    border: 2px solid transparent;
-    border-radius: 12px;
-    padding: 12px;
-    cursor: pointer;
-    text-align: left;
-    font-size: 15px;
-    color: var(--text);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 6px;
-    font-family: inherit;
-  }
-  .chip.on {
-    background: var(--green-bg);
-    border-color: var(--green-border);
-    color: var(--green);
-  }
-  .chip .checkmark {
-    width: 18px; height: 18px; border-radius: 50%;
-    border: 2px solid var(--border);
-    display: inline-block;
-  }
-  .chip.on .checkmark {
-    background: var(--green);
-    border-color: var(--green);
-    position: relative;
-  }
-  .chip.on .checkmark::after {
-    content: '';
-    position: absolute;
-    top: 2px; left: 5px;
-    width: 4px; height: 8px;
-    border: solid white;
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
-  }
-
-  /* Slider */
-  .slider-row {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    margin-bottom: 8px;
-  }
-  .slider-row .val { font-size: 28px; font-weight: 700; }
-  .slider-row .label { color: var(--text-secondary); font-size: 14px; }
-  input[type=range] {
-    -webkit-appearance: none;
-    width: 100%;
-    height: 6px;
-    border-radius: 3px;
-    background: var(--card-2);
-    outline: none;
-  }
-  input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: var(--green);
-    cursor: pointer;
-    border: 4px solid var(--card);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-  }
-  input[type=range]::-moz-range-thumb {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: var(--green);
-    cursor: pointer;
-    border: 3px solid var(--card);
-  }
-
-  /* Facility picker */
-  .picker {
-    background: var(--card-2);
-    border: 1px solid transparent;
-    border-radius: 12px;
-    padding: 12px 14px;
-    width: 100%;
-    text-align: left;
-    font-size: 15px;
-    color: var(--text);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    cursor: pointer;
-    font-family: inherit;
-  }
-  .picker .chev { color: var(--text-tertiary); }
-  .facility-list .picker { margin-bottom: 6px; }
-  .facility-list .picker.on { background: var(--green-bg); border-color: var(--green-border); color: var(--green); }
-
-  /* Drill rows */
-  .drill-row {
-    background: var(--card);
-    border-radius: 12px;
-    padding: 14px;
-    margin-bottom: 8px;
-    cursor: pointer;
-    transition: background 0.1s;
-    box-shadow: var(--shadow);
-  }
-  .drill-row:active { background: var(--card-2); }
-  .drill-row .title { font-weight: 600; margin-top: 6px; }
-  .drill-row .summary { color: var(--text-secondary); font-size: 14px; margin-top: 2px; }
-
-  /* Timer */
-  .timer-display {
-    font-size: 56px;
+    border-radius: 14px;
+    padding: 18px 20px;
+    font-size: 18px;
     font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    text-align: center;
-    font-family: -apple-system, "SF Mono", monospace;
-    letter-spacing: -2px;
-    margin: 12px 0;
-  }
-  .timer-display.over { color: var(--orange); }
-
-  /* Instructions */
-  .steps { padding-left: 0; list-style: none; margin: 0; }
-  .steps li { display: flex; gap: 10px; margin-bottom: 8px; align-items: flex-start; }
-  .steps .num {
-    color: var(--green); font-weight: 700; flex-shrink: 0;
-  }
-
-  /* Rating buttons */
-  .rate-list { display: flex; flex-direction: column; gap: 8px; }
-  .rate-btn {
-    background: var(--card-2);
-    border: 2px solid transparent;
-    border-radius: 12px;
-    padding: 14px;
+    cursor: pointer;
     width: 100%;
-    text-align: left;
-    font-size: 16px;
-    color: var(--text);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    cursor: pointer;
     font-family: inherit;
+    transition: transform 0.06s, opacity 0.1s;
   }
-  .rate-btn .dot {
-    width: 16px; height: 16px; border-radius: 50%;
+  .btn:active { transform: scale(0.98); opacity: 0.85; }
+  .btn-primary {
+    background: var(--green);
+    color: white;
+    box-shadow: 0 4px 14px rgba(15, 138, 42, 0.25);
   }
-  .rate-btn.selected { border-color: currentColor; }
-  .rate-btn.poor       { color: var(--red); }
-  .rate-btn.belowAverage { color: var(--orange); }
-  .rate-btn.average    { color: var(--yellow); }
-  .rate-btn.good       { color: var(--mint); }
-  .rate-btn.excellent  { color: var(--green); }
-  .rate-btn .dot { background: currentColor; }
-  .rate-btn.selected { background: color-mix(in srgb, currentColor 12%, transparent); }
-
-  /* Skill bars */
-  .skill-row { margin: 10px 0; }
-  .skill-row .top-row {
-    display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 4px;
-  }
-  .skill-bar {
-    position: relative;
-    height: 10px;
-    background: var(--card-2);
-    border-radius: 5px;
-    overflow: hidden;
-  }
-  .skill-bar .uncertainty {
-    position: absolute;
-    top: 0; bottom: 0;
-    opacity: 0.25;
-  }
-  .skill-bar .mean {
-    position: absolute;
-    top: 0; bottom: 0; left: 0;
-    border-radius: 5px;
-  }
-
-  /* Bottom tabs */
-  .tabs {
-    position: fixed;
-    bottom: 0;
-    left: 0; right: 0;
-    background: var(--card);
-    border-top: 1px solid var(--border);
-    display: flex;
-    justify-content: space-around;
-    padding: 6px 0 max(6px, env(safe-area-inset-bottom));
-    z-index: 100;
-  }
-  .tab {
-    background: none;
-    border: none;
-    flex: 1;
-    padding: 8px;
-    color: var(--text-tertiary);
-    font-size: 11px;
-    cursor: pointer;
-    font-family: inherit;
+  .btn-ghost {
+    background: transparent;
+    color: var(--green);
     font-weight: 600;
+    padding: 12px;
+  }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* Home hero */
+  .hero {
+    margin-top: 56px;
+    margin-bottom: 16px;
+  }
+  .hero h1 {
+    font-size: 40px;
+    line-height: 1.1;
+  }
+  .hero .tag {
+    color: var(--muted);
+    margin: 6px 0 32px;
+    font-size: 16px;
+  }
+
+  /* Choice grids */
+  .choice-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .choice-2 { grid-template-columns: repeat(2, 1fr); }
+  .choice {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 8px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    font-family: inherit;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
+    gap: 4px;
+    min-height: 76px;
+    transition: transform 0.06s, border-color 0.1s, background 0.1s;
   }
-  .tab .icon { font-size: 22px; line-height: 1; }
-  .tab.active { color: var(--green); }
+  .choice:active { transform: scale(0.97); }
+  .choice.on {
+    border-color: var(--green);
+    background: var(--green-soft);
+    color: var(--green);
+  }
+  .choice .big {
+    font-size: 22px;
+    font-weight: 800;
+  }
+  .choice .sub {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .choice.on .sub { color: var(--green); opacity: 0.85; }
+  .choice .ico { font-size: 22px; }
 
-  /* Progress bar */
-  .progress {
-    height: 6px;
-    background: var(--card-2);
-    border-radius: 3px;
-    overflow: hidden;
-    margin: 8px 0;
+  /* Drill card */
+  .drill {
+    margin-top: 8px;
   }
-  .progress .fill {
-    height: 100%;
-    background: var(--green);
-    transition: width 0.3s;
-  }
-
-  /* Phase header tag */
-  .phase-tag {
-    display: inline-block;
-    font-size: 11px;
+  .drill .phase {
+    color: var(--green);
+    font-size: 13px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+  .drill h2 {
+    font-size: 30px;
+    line-height: 1.15;
+    margin-bottom: 10px;
+  }
+  .drill .summary {
+    color: var(--muted);
+    font-size: 17px;
+    margin-bottom: 22px;
+  }
+  .drill .planned {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 22px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  ol.steps {
+    padding: 0;
+    margin: 0 0 22px 0;
+    list-style: none;
+    counter-reset: stp;
+  }
+  ol.steps li {
+    counter-increment: stp;
+    padding: 12px 14px 12px 44px;
+    position: relative;
+    background: var(--card);
+    border-radius: 12px;
+    margin-bottom: 8px;
+    font-size: 16px;
+    line-height: 1.45;
+    box-shadow: var(--shadow);
+  }
+  ol.steps li::before {
+    content: counter(stp);
+    position: absolute;
+    left: 12px;
+    top: 12px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--green-soft);
     color: var(--green);
+    font-weight: 700;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .pass {
+    background: var(--green-soft);
+    border-left: 3px solid var(--green);
+    padding: 14px 16px;
+    border-radius: 10px;
+    margin-bottom: 28px;
+    font-size: 15px;
+  }
+  .pass .label {
+    color: var(--green);
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    display: block;
     margin-bottom: 4px;
   }
-  .phase-tag::before { content: '◆ '; }
 
-  /* Modal-ish bottom sheet */
-  .sheet-backdrop {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.4);
-    z-index: 200;
-    display: flex; align-items: flex-end; justify-content: center;
+  /* Rating */
+  .rate-prompt {
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
   }
-  .sheet {
+  .rate-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .rate {
+    border: 2px solid var(--border);
     background: var(--card);
-    width: 100%;
-    max-width: 540px;
-    border-radius: 20px 20px 0 0;
-    padding: 20px;
-    max-height: 85vh;
-    overflow-y: auto;
-    padding-bottom: max(20px, env(safe-area-inset-bottom));
-  }
-  .sheet .handle {
-    width: 36px; height: 5px; background: var(--border);
-    border-radius: 3px; margin: -8px auto 12px;
-  }
-
-  /* Empty states */
-  .empty {
-    text-align: center;
-    padding: 48px 24px;
-    color: var(--text-tertiary);
-  }
-  .empty .icon { font-size: 56px; margin-bottom: 12px; }
-
-  /* Stat pill */
-  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .stat {
-    background: var(--card-2);
-    border-radius: 10px;
-    padding: 10px 8px;
-    text-align: center;
-  }
-  .stat .val { font-size: 18px; font-weight: 700; }
-  .stat .label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em; }
-
-  /* Inputs */
-  input[type=text], textarea {
-    width: 100%;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 12px;
-    font-size: 16px;
-    background: var(--card-2);
-    color: var(--text);
+    border-radius: 14px;
+    padding: 18px 8px;
+    cursor: pointer;
     font-family: inherit;
-    resize: vertical;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    color: var(--text);
+    font-weight: 700;
+    transition: transform 0.06s;
   }
-  textarea { min-height: 80px; }
+  .rate:active { transform: scale(0.96); }
+  .rate .ico { font-size: 28px; line-height: 1; }
+  .rate .lbl { font-size: 14px; }
+  .rate.r1 { border-color: rgba(192, 57, 43, 0.4); }
+  .rate.r3 { border-color: rgba(212, 160, 23, 0.4); }
+  .rate.r5 { border-color: rgba(15, 138, 42, 0.4); }
+  .rate.r1:active { background: rgba(192, 57, 43, 0.10); }
+  .rate.r3:active { background: rgba(212, 160, 23, 0.10); }
+  .rate.r5:active { background: var(--green-soft); }
 
-  /* Delta badge */
-  .delta-pos { color: var(--green); font-weight: 700; }
-  .delta-neg { color: var(--red); font-weight: 700; }
+  /* Resume row */
+  .resume {
+    margin-top: 16px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 15px;
+    cursor: pointer;
+    font-family: inherit;
+    width: 100%;
+    color: var(--text);
+    text-align: left;
+  }
+  .resume strong { color: var(--green); font-weight: 700; }
+  .resume .chev { color: var(--muted); }
 
-  /* Utility */
-  .hidden { display: none !important; }
+  /* Done */
+  .done {
+    text-align: center;
+    margin-top: 80px;
+  }
+  .done .check {
+    font-size: 72px;
+    margin-bottom: 12px;
+  }
+  .done h1 { margin-bottom: 10px; }
+  .done p { color: var(--muted); margin-bottom: 30px; }
+
+  /* History (kept minimal, only reachable from done) */
+  .history-item {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    box-shadow: var(--shadow);
+  }
+  .history-item .date { font-weight: 600; }
+  .history-item .meta { color: var(--muted); font-size: 13px; margin-top: 2px; }
+
+  /* Misc */
   .center { text-align: center; }
+  .muted { color: var(--muted); }
   .mt-12 { margin-top: 12px; }
-  .mt-16 { margin-top: 16px; }
   .mt-24 { margin-top: 24px; }
   .mb-8 { margin-bottom: 8px; }
   .mb-16 { margin-bottom: 16px; }
-  .gap-12 { gap: 12px; }
+  .mb-24 { margin-bottom: 24px; }
 </style>
 </head>
 <body>
 <div id="app"></div>
 
 <script>
-/* ============================================================
-   Range Caddy — single-file web app
-   Mirrors the iOS app's engine and data model.
-   ============================================================ */
+"use strict";
 
-// ---------- 1. Static data ----------
+/* ─── Drill library (40 drills, condensed) ─── */
+const D = [
+  ["putt.gate","Gate Drill — 3 ft","Push 3-foot putts through a narrow tee gate.",["puttingShort"],["putter"],8,["warmup","block","cooldown"],"putt",["Set two tees just wider than your putter head, 3 ft from a flat hole.","Place a ball 3 ft from the cup, on the line through the gate.","Make 10 in a row through the gate AND into the cup.","Reset to zero on any miss."],"10 in a row clean."],
+  ["putt.clock","Clock Drill","Six 3-foot putts around the hole. Miss one and restart.",["puttingShort","mentalPressure"],["putter"],10,["block","transfer"],"putt",["Place six balls evenly around a hole at 3 ft.","Hole each ball in order.","Any miss = reset all six."],"Clear the clock once."],
+  ["putt.ladder","Distance Ladder","Lag to 10, 20, 30, 40 ft targets.",["puttingLag","puttingMid"],["putter"],10,["block"],"putt",["Drop tees at 10, 20, 30, and 40 feet on flat ground.","Hit one ball to each target, in order, then back down.","Score: inside 1 putter length = 2, inside 3 ft = 1."],"Score 12+ over 8 putts."],
+  ["putt.9ball","9-Ball Test","3 balls each from 3, 6, and 9 feet.",["puttingShort","puttingMid"],["putter"],10,["block","transfer"],"putt",["Find a fairly straight putt.","Hit 3 from 3 ft, 3 from 6 ft, 3 from 9 ft.","Count makes."],"Make 7 of 9."],
+  ["putt.break","Read & Roll","Commit to a line on breaking putts.",["puttingBreak","puttingMid"],["putter"],12,["block"],"putt",["Find a 10–15 ft breaking putt.","Read from low side. Pick an apex.","Hit 3 balls from the same spot.","Reset and pick a new break. Do 5 spots."],"All balls start on chosen line; most finish inside 18 in."],
+  ["putt.eyes","Eyes-Closed Feel","Roll 15-footers with eyes closed.",["puttingLag"],["putter"],8,["warmup","cooldown"],"putt",["Pick a 15 ft target on flat ground.","Look at the target, then close your eyes.","Stroke the putt.","Open eyes only after it's rolling."],"Most finish inside a 3 ft circle."],
+  ["putt.one","One-Handed Putts","Trail hand only from 6 ft.",["puttingShort","puttingMid"],["putter"],6,["warmup","block"],"putt",["Use only your trail hand on the grip.","Hit 10 putts from 6 ft.","Focus on stable wrist and center contact."],"Make 5 of 10."],
+  ["putt.lag","Lag Funnel","Long putts must finish inside a 3-ft circle.",["puttingLag"],["putter"],12,["block"],"putt",["Mark a 3 ft circle around a hole.","Hit 6 from 30 ft. Then 6 from 40 ft. Then 6 from 50 ft.","Goal: every ball inside the circle."],"14+ of 18 in the circle."],
+  ["putt.highhole","Hole-High 5-Footers","Reach the hole on every 5-footer.",["puttingShort","mentalPressure"],["putter"],6,["block","transfer"],"putt",["Pick a flat 5 ft putt.","Every ball must reach the hole — short doesn't count.","Hit 10."],"Make 7 of 10."],
+  ["mix.chipputt","Chip-Then-Putt","Chip one, putt out. Commit on the first putt.",["transferRandom","chippingGreenside","puttingShort"],["wedges","putter"],12,["transfer"],"short",["From off the green, chip one ball at a hole.","Wherever it stops, putt it out (no marker).","Repeat 8 times from different lies."],"5 of 8 up & down."],
 
-const CLUBS = {
-  putter:       { name: "Putter",        emoji: "⛳" },
-  wedges:       { name: "Wedges",        emoji: "🪶" },
-  shortIrons:   { name: "Short Irons",   emoji: "🎯" },
-  midIrons:     { name: "Mid Irons",     emoji: "🔭" },
-  longIrons:    { name: "Long Irons",    emoji: "↗️" },
-  hybrids:      { name: "Hybrids",       emoji: "🔀" },
-  fairwayWoods: { name: "Fairway Woods", emoji: "🌳" },
-  driver:       { name: "Driver",        emoji: "⚡" },
-};
-const CLUB_KEYS = Object.keys(CLUBS);
+  ["chip.pad","Landing Pad","Land every chip on a towel.",["chippingGreenside"],["wedges"],8,["warmup","block"],"short",["Lay a towel 1/3 of the way to the hole.","Chip 10 balls onto the towel.","Anything that touches the towel counts."],"6 of 10 hits."],
+  ["chip.highlow","High-Low Wedge","Same target, two trajectories.",["chippingGreenside"],["wedges","shortIrons"],10,["block"],"short",["Pick a hole ~15 yd away.","Hit 5 low bump-and-runs with PW.","Hit 5 high soft chips with LW.","Notice landing spot vs total roll."],"All 10 inside 6 ft."],
+  ["chip.bumprun","Bump-and-Run 7i","Low, predictable rollers from the fringe.",["chippingGreenside"],["shortIrons"],8,["block","transfer"],"short",["From the fringe, 30+ ft to the hole, use a 7-iron.","Putting grip, ball back, hands forward.","Land 1/3 in, let it roll. Hit 8."],"6 of 8 inside 6 ft."],
+  ["chip.lies","Lie Variety","Tight, fluff, downhill, rough — adapt every shot.",["chippingGreenside","transferRandom"],["wedges","shortIrons"],12,["transfer","block"],"short",["Toss 5 balls into different lies around the green.","Play each to the same hole with whatever fits.","Score: up & down = 2, inside 6 ft = 1."],"Score 6+ of 10."],
+  ["chip.test","Up & Down Test","Get up & down from 10 random spots.",["chippingGreenside","transferRandom","mentalPressure"],["wedges","putter"],15,["transfer"],"short",["Drop one ball, no second chance.","Get it in the hole in 2 shots.","Pick new spot. Repeat 10 times."],"5 of 10 up & downs."],
+  ["chip.oneclub","One Club, Five Shots","SW only — five different trajectories.",["chippingGreenside"],["wedges"],12,["block"],"short",["To the same hole, with only your SW, hit:","Low bump-and-run.","Standard chip.","Higher cut chip (face open).","Flop with stable lower body.","Spinner — sharp accel, hands forward."],"All 5 inside 8 ft."],
+  ["chip.distance","Distance Wedges","Partial wedges at 30/40/50/60 yd.",["chippingPitch","wedgePartial"],["wedges"],15,["block"],"shortOrRange",["Use one wedge.","5 balls at 30, then 5 at 40, 50, 60.","Adjust by swing length, not effort.","Score: ≤8 yd = 1, ≤4 yd = 2."],"Score 24+ of 40."],
+  ["chip.spin","Spin Control","High-spin vs low-spin to same target.",["chippingGreenside"],["wedges"],10,["block"],"short",["Pick a hole 12 yd away.","5 high-spin chips: clean lie, sharp descent, hands forward.","5 low-spin chips: ball back, less wrist.","Compare landing patterns."],"Clear difference in roll-out groups."],
 
-const FACILITIES = {
-  fullFacility:    { name: "Full Practice Facility",  emoji: "⭐", range: true,  short: true,  putt: true  },
-  rangeShortGame:  { name: "Range + Short Game",      emoji: "🎯", range: true,  short: true,  putt: false },
-  rangePutting:    { name: "Range + Putting Green",   emoji: "🏁", range: true,  short: false, putt: true  },
-  rangeOnly:       { name: "Driving Range Only",      emoji: "🏌️", range: true,  short: false, putt: false },
-  shortGameOnly:   { name: "Short Game Area",         emoji: "🍃", range: false, short: true,  putt: false },
-  puttingGreenOnly:{ name: "Putting Green",           emoji: "⛳", range: false, short: false, putt: true  },
-  simulator:       { name: "Simulator / Indoor",      emoji: "📺", range: true,  short: true,  putt: true  },
-  home:            { name: "Home / Mat",              emoji: "🏠", range: true,  short: true,  putt: true  },
-};
+  ["iron.9w","9-Window with 7i","High/mid/low × L/C/R.",["ironMid"],["midIrons"],14,["block"],"range",["Target ~150 yd.","Hit 9 balls, one for each cell of a 3×3 grid.","Plan each ball flight before you swing."],"5+ shots match intent."],
+  ["iron.num","Number Game","Call the carry, hit it.",["ironShort","ironMid","ironLong"],["shortIrons","midIrons","longIrons"],15,["block","transfer"],"range",["Pick a club + a target line.","Before each swing, call a carry number aloud.","Hit. Compare to actual.","5 shots per club, PW → 6-iron."],"Average miss < 6 yd."],
+  ["iron.path","Alignment Stick Path","Two sticks frame your path.",["ironMid","ironShort"],["midIrons","shortIrons"],10,["warmup","block"],"range",["One stick on the target line just inside the ball.","Second stick 2 ft outside, parallel — a corridor.","10 balls through the corridor.","Slice/pull? Narrow the corridor."],"Consistent shape; no stick contact."],
+  ["iron.halfpw","Half-Swing PW","PW at 50%. Tempo + contact.",["wedgePartial","ironShort"],["wedges","shortIrons"],10,["warmup","block"],"range",["Half backswing (left arm to parallel-ish).","12 balls, smooth tempo, low finish.","Carry should sit ~60 yd, very repeatable."],"10+ of 12 center-face within 6 yd."],
+  ["iron.random","Random Club Carousel","Switch clubs every shot.",["transferRandom","ironMid","ironShort","ironLong"],["shortIrons","midIrons","longIrons","wedges"],14,["transfer"],"range",["Write down 6 clubs (e.g. 7i, SW, 9i, hybrid, PW, 5i).","Pick a different target for each.","Full routine on every ball.","12 shots, switch club every shot."],"Hit your target line on 9 of 12."],
+  ["iron.stinger","Stinger Drill","Low 5-iron knock-down.",["ironLong"],["longIrons"],10,["block"],"range",["Tee low or hit off turf.","5-iron. Ball 1 in. back of center, hands ahead.","3/4 swing, low abbreviated finish.","8 balls focused on flighting it down."],"Peaks under tree-height; consistent shape."],
+  ["iron.alley","Fairway Alley","Mid-iron tee shots into a 20-yd alley.",["ironMid","driverAccuracy"],["midIrons"],10,["block","transfer"],"range",["Pick two range markers ~20 yd apart.","Tee up. Mid iron.","10 tee shots — each must land in the alley.","Crushing it? Narrower."],"8 of 10 in the alley."],
+  ["iron.stripe","Stripe Test 6i","Ball-first contact with a 6-iron.",["ironMid"],["midIrons"],10,["warmup","block"],"range",["Foot powder or impact tape if you have it.","10 balls with 6-iron, divot AFTER the ball.","Self-rate strike: thin / center / heavy."],"7 of 10 center strikes."],
+  ["iron.ladder","Iron Ladder","Same swing, descending clubs.",["ironShort","ironMid"],["shortIrons","midIrons"],12,["block"],"range",["3 shots each: PW, 9, 8, 7, 6.","Same tempo every time.","Look for ~10 yd gaps."],"Clean ordering, gaps within 4 yd."],
+  ["iron.closeout","Pressure Closeout","Three in a row inside 10 yd or restart.",["mentalPressure","ironMid","ironShort"],["shortIrons","midIrons"],10,["transfer"],"range",["Pick a club + a flag.","3 consecutive shots within 10 yd.","Any miss resets to 0.","Limit: 15 balls."],"Chain of 3 within the budget."],
 
-const SKILLS = {
-  puttingShort:      "Short Putting",
-  puttingMid:        "Mid Putting",
-  puttingLag:        "Lag Putting",
-  puttingBreak:      "Breaking Putts",
-  chippingGreenside: "Greenside Chipping",
-  chippingPitch:     "Pitching",
-  wedgePartial:      "Partial Wedges",
-  ironShort:         "Short Irons",
-  ironMid:           "Mid Irons",
-  ironLong:          "Long Irons",
-  woodsHybrid:       "Hybrids / Woods",
-  driverAccuracy:    "Driver Accuracy",
-  driverDistance:    "Driver Distance",
-  mentalPressure:    "Pressure / Closing",
-  transferRandom:    "Random / Transfer",
-};
-const SKILL_KEYS = Object.keys(SKILLS);
+  ["wd.sweep","Fairway Wood Sweep","3-wood off turf — no divot.",["woodsHybrid"],["fairwayWoods"],10,["block"],"range",["Place a tee 6 in. behind the ball, lying flat.","3-wood, sweep without disturbing it.","8 balls."],"6 of 8 clean."],
+  ["wd.trouble","Hybrid From Trouble","Steeper hybrid swing.",["woodsHybrid"],["hybrids"],10,["block"],"range",["Set up a degraded lie (tee on ground or rough mat).","Hybrid. Steeper than a fairway-wood swing.","8 balls, get it airborne with shape."],"Most launch + travel intended shape."],
+  ["wd.teedeck","Tee vs Deck","3-wood teed vs off the mat.",["woodsHybrid","driverAccuracy"],["fairwayWoods"],10,["block","transfer"],"range",["4 with 3-wood teed low.","4 with 3-wood off the mat/turf.","Compare contact + start direction."],"Both groups in a tight start window."],
+  ["wd.decision","Club Decision Hole","Imagine a par 4; pick a club.",["woodsHybrid","transferRandom"],["hybrids","fairwayWoods","midIrons","driver"],12,["transfer"],"range",["Visualize a 380-yd par 4, bunkers at 250.","Pick what you'd hit off the tee.","3 shots to your intended target.","Then play the second shot from a guessed distance."],"Plan matches on 2 of 3."],
 
-const SKILL_GROUPS = [
-  { title: "Putting",     keys: ["puttingShort", "puttingMid", "puttingLag", "puttingBreak"] },
-  { title: "Short game",  keys: ["chippingGreenside", "chippingPitch", "wedgePartial"] },
-  { title: "Full swing",  keys: ["ironShort", "ironMid", "ironLong", "woodsHybrid", "driverAccuracy", "driverDistance"] },
-  { title: "Game skills", keys: ["mentalPressure", "transferRandom"] },
+  ["drv.tee","Tee Height Variety","Three tee heights — see launch change.",["driverDistance"],["driver"],12,["block"],"range",["3 tee low (half-ball above crown).","3 standard.","3 high (ball fully above crown).","Note carry + spin for each."],"You can pick the best mix for carry + roll."],
+  ["drv.shape","Fade-Draw Alternate","Force shape control.",["driverAccuracy"],["driver"],12,["block"],"range",["Pick a target line.","Shot #1: fade.","Shot #2: draw.","Repeat for 10 total."],"Each pair shows a clear shape difference."],
+  ["drv.alley","Fairway Finder","Pound driver into a 30-yd alley.",["driverAccuracy"],["driver"],12,["block","transfer"],"range",["Two markers ~30 yd apart at driver carry.","10 drivers — each must land in the alley.","Consistent miss? Narrow that side."],"7 of 10 in."],
+  ["drv.speed","Speed Triple","3 max-effort drivers with rest.",["driverDistance"],["driver"],10,["block"],"range",["Warm up first.","3 driver swings at 100% — speed first.","Rest 60 sec. 3 sets total = 9 swings.","Track ball speed if you can."],"Top-end speeds 2+ mph above average."],
+  ["drv.routine","Routine Lock","Full pre-shot on every ball.",["driverAccuracy","mentalPressure"],["driver"],12,["transfer"],"range",["10 drivers. EVERY ball gets:","Stand behind, pick a target.","Visualize the flight.","Step in, align, one trigger.","Commit and swing within 8 sec of setup."],"Same routine every time."],
+
+  ["mix.worst","Worst Ball","Hit two, play the worse one.",["mentalPressure","transferRandom"],["midIrons","shortIrons","wedges"],12,["transfer"],"range",["Pick a target.","Hit two balls.","Your next 'position' is the worse one.","10 shots."],"Stay in a 25-yd window 5+ in a row."],
+  ["mix.hole","Simulated Hole","Driver → iron → wedge → putter.",["transferRandom","mentalPressure"],["driver","midIrons","wedges","putter"],14,["transfer"],"any",["Imagine a par 4 you know.","Tee shot: driver. Approach: real iron you'd hit.","Pretend wedge approach.","Then a 10 yd putt on the green.","Score the hole."],"At or under par."],
+  ["mix.test","The Test (Closing 3)","Three closing shots that count.",["mentalPressure","transferRandom"],["putter","wedges","midIrons"],8,["cooldown","transfer"],"any",["End on these three:","6 ft putt — make or fail.","Chip from 12 yd — inside 6 ft or fail.","150 yd iron — within 20 yd or fail."],"Pass all 3."],
+
+  ["cool.wedge","Wedge Feel","Soft 30-yd wedges. Walk away clean.",["wedgePartial"],["wedges"],5,["cooldown","warmup"],"shortOrRange",["Pick a 30–40 yd target.","8 soft easy SW shots.","No grading — just feel."],"Last 4 in a row feel clean."],
+  ["cool.lag","Lag Cool-Down","10 long putts. No scoring.",["puttingLag"],["putter"],5,["cooldown","warmup"],"putt",["10 putts of varied length on flat ground.","Watch each one finish.","Notice what good ones feel like."],"Walk away smooth."],
 ];
 
-// Zone-required-by-skill — used to filter drills by facility.
-const SKILL_ZONE = {
-  puttingShort: "putting", puttingMid: "putting", puttingLag: "putting", puttingBreak: "putting",
-  chippingGreenside: "shortGame", chippingPitch: "shortGame",
-  wedgePartial: "shortGameOrRange",
-  ironShort: "range", ironMid: "range", ironLong: "range",
-  woodsHybrid: "range", driverAccuracy: "range", driverDistance: "range",
-  mentalPressure: "any", transferRandom: "any",
-};
+// Flatten into objects so the rest of the code reads nicely.
+const DRILLS = D.map(d => ({
+  id: d[0], name: d[1], summary: d[2],
+  skillAreas: d[3], clubs: d[4],
+  defaultMinutes: d[5], suitablePhases: d[6], zone: d[7],
+  instructions: d[8], successCriteria: d[9],
+}));
+const DRILLS_BY_ID = Object.fromEntries(DRILLS.map(d => [d.id, d]));
 
-function zoneSupported(zone, facility) {
-  const f = FACILITIES[facility];
+/* ─── User-facing simple buckets ─── */
+
+const TIMES = [30, 45, 60];
+
+const FACILITIES = [
+  { id: "full",  label: "Full Practice", sub: "Range + short + putting",  range: true,  short: true,  putt: true  },
+  { id: "range", label: "Range",         sub: "Hitting bays only",        range: true,  short: false, putt: false },
+  { id: "short", label: "Short Game",    sub: "Chipping + sand",          range: false, short: true,  putt: false },
+  { id: "putt",  label: "Putting Green", sub: "Putting only",             range: false, short: false, putt: true  },
+];
+const FACILITIES_BY_ID = Object.fromEntries(FACILITIES.map(f => [f.id, f]));
+
+const CLUB_BUCKETS = [
+  { id: "putter",  label: "Putter",  clubs: ["putter"] },
+  { id: "wedges",  label: "Wedges",  clubs: ["wedges"] },
+  { id: "irons",   label: "Irons",   clubs: ["shortIrons", "midIrons", "longIrons"] },
+  { id: "driver",  label: "Driver",  clubs: ["driver", "fairwayWoods", "hybrids"] },
+];
+const CLUB_BUCKETS_BY_ID = Object.fromEntries(CLUB_BUCKETS.map(b => [b.id, b]));
+
+/* Map a drill's zone string to a facility check. */
+function zoneOK(zone, facility) {
+  const f = FACILITIES_BY_ID[facility];
   switch (zone) {
-    case "putting":          return f.putt;
-    case "shortGame":        return f.short;
-    case "shortGameOrRange": return f.short || f.range;
-    case "range":            return f.range;
-    case "any":              return true;
+    case "putt":          return f.putt;
+    case "short":         return f.short;
+    case "shortOrRange":  return f.short || f.range;
+    case "range":         return f.range;
+    case "any":           return true;
   }
   return false;
 }
 
-// ---------- 2. Drill library (40 drills) ----------
+/* Expand the user's club-bucket selection into the engine's club categories. */
+function expandClubs(bucketIds) {
+  const set = new Set();
+  bucketIds.forEach(id => CLUB_BUCKETS_BY_ID[id].clubs.forEach(c => set.add(c)));
+  return set;
+}
 
-const DRILLS = [
-  // Putting
-  { id:"putt.gate.3ft", name:"Gate Drill — 3 ft", summary:"Push 3-foot putts through a narrow tee gate to dial in face control.",
-    instructions:[
-      "Set two tees just wider than your putter head, 3 ft from a flat hole.",
-      "Place a ball 3 ft from the cup, on the line through the gate.",
-      "Make 10 putts in a row through the gate, into the cup.",
-      "Reset to zero if a putt misses the gate or the cup."],
-    successCriteria:"10 in a row through the gate AND into the hole.",
-    skillAreas:["puttingShort"], clubs:["putter"], defaultMinutes:8, suitablePhases:["warmup","block","cooldown"], zone:"putting", difficulty:2, reps:"Until you can chain 10" },
+/* ─── Storage ─── */
 
-  { id:"putt.clock.3ft", name:"Clock Drill", summary:"Six 3-foot putts around the hole. Miss one and restart.",
-    instructions:[
-      "Place six balls evenly around the hole at 3 ft (12, 2, 4, 6, 8, 10 o'clock).",
-      "Hole each ball in order without missing.",
-      "If you miss, reset all six and start again."],
-    successCriteria:"Clear the clock without a miss.",
-    skillAreas:["puttingShort","mentalPressure"], clubs:["putter"], defaultMinutes:10, suitablePhases:["block","transfer"], zone:"putting", difficulty:3, reps:"Up to 3 clean rounds" },
-
-  { id:"putt.ladder", name:"Distance Ladder", summary:"Lag to 10, 20, 30, 40 ft targets — distance control without a hole.",
-    instructions:[
-      "Drop tees as targets at 10, 20, 30, and 40 feet on a flat stretch of green.",
-      "Hit one ball to each target, in order, then back down.",
-      "Score: inside 1 putter length = 2 pts, inside 3 ft = 1 pt."],
-    successCriteria:"Score 12+ over 8 putts (4 up, 4 down).",
-    skillAreas:["puttingLag","puttingMid"], clubs:["putter"], defaultMinutes:10, suitablePhases:["block"], zone:"putting", difficulty:2, reps:"2-3 sets of 8" },
-
-  { id:"putt.9ball", name:"9-Ball Test", summary:"3 balls each from 3, 6, and 9 feet. Make as many as possible.",
-    instructions:[
-      "Find a fairly straight putt.",
-      "Hit 3 from 3 ft, 3 from 6 ft, 3 from 9 ft.",
-      "Track your make total each round."],
-    successCriteria:"Make 7 of 9 to pass.",
-    skillAreas:["puttingShort","puttingMid"], clubs:["putter"], defaultMinutes:10, suitablePhases:["block","transfer"], zone:"putting", difficulty:3, reps:"3 rounds" },
-
-  { id:"putt.break.read", name:"Read & Roll", summary:"Read a breaking putt, commit, hit. Build trust on slope.",
-    instructions:[
-      "Find a 10-15 ft breaking putt.",
-      "Read from low side. Pick an apex. Commit.",
-      "Hit 3 balls from the same spot. Reset and pick a new break.",
-      "Aim to start every ball on your chosen line."],
-    successCriteria:"All 3 balls start on the chosen line; majority finish inside 18 inches.",
-    skillAreas:["puttingBreak","puttingMid"], clubs:["putter"], defaultMinutes:12, suitablePhases:["block"], zone:"putting", difficulty:4, reps:"5 different breaks" },
-
-  { id:"putt.eyesclosed", name:"Eyes-Closed Feel", summary:"Roll 15-foot putts with eyes closed to build internal distance feel.",
-    instructions:[
-      "Pick a 15 ft target on a flat section.",
-      "Take your stance, look at the target, close your eyes.",
-      "Make the stroke with eyes closed.",
-      "Open eyes only after the putt is rolling. Adjust feel, not mechanics."],
-    successCriteria:"Average finish inside a 3 ft circle on 10 putts.",
-    skillAreas:["puttingLag"], clubs:["putter"], defaultMinutes:8, suitablePhases:["warmup","cooldown"], zone:"putting", difficulty:2, reps:"10 putts" },
-
-  { id:"putt.onehanded", name:"One-Handed Putts", summary:"Six-foot putts with the trail hand only — exposes face control issues.",
-    instructions:[
-      "Use only your trail hand on the grip (right hand for right-handers).",
-      "Hit 10 putts from 6 ft to a flat hole.",
-      "Focus on stable wrist and on-center contact."],
-    successCriteria:"Make 5 of 10.",
-    skillAreas:["puttingShort","puttingMid"], clubs:["putter"], defaultMinutes:6, suitablePhases:["warmup","block"], zone:"putting", difficulty:3, reps:"10 putts" },
-
-  { id:"putt.lag.funnel", name:"Lag Funnel", summary:"Long putts must finish inside a 3-foot circle around the hole.",
-    instructions:[
-      "Mark a 3 ft circle around a hole with tees (or eyeball it).",
-      "Hit 6 putts from 30 ft. Then 6 from 40 ft. Then 6 from 50 ft.",
-      "Goal: get every ball into the circle."],
-    successCriteria:"≥14/18 in the circle.",
-    skillAreas:["puttingLag"], clubs:["putter"], defaultMinutes:12, suitablePhases:["block"], zone:"putting", difficulty:3, reps:"18 putts" },
-
-  { id:"putt.holehigh.5ft", name:"Hole-High 5-Footers", summary:"Roll every 5-foot putt past the hole on the right line.",
-    instructions:[
-      "Pick a flat 5 ft putt.",
-      "Every ball must reach the hole — short doesn't count.",
-      "10 putts. Track makes."],
-    successCriteria:"Make 7 of 10.",
-    skillAreas:["puttingShort","mentalPressure"], clubs:["putter"], defaultMinutes:6, suitablePhases:["block","transfer"], zone:"putting", difficulty:3, reps:"10 putts" },
-
-  { id:"putt.chip.combo", name:"Chip-Then-Putt", summary:"Chip one, putt out. Repeat. Forces you to commit to the first putt.",
-    instructions:[
-      "From off the green, chip one ball at a hole.",
-      "Wherever it stops, putt it out (no marker).",
-      "Track 'up & downs' — got it in 2 shots? Pass.",
-      "Repeat 8 times from different lies."],
-    successCriteria:"5 of 8 up & down.",
-    skillAreas:["transferRandom","chippingGreenside","puttingShort"], clubs:["wedges","putter"], defaultMinutes:12, suitablePhases:["transfer"], zone:"shortGame", difficulty:3, reps:"8 attempts" },
-
-  // Chipping & Pitching
-  { id:"chip.landingpad", name:"Landing Pad", summary:"Land every chip on a towel — landing-spot control.",
-    instructions:[
-      "Lay a towel on the green about 1/3 of the way to the hole.",
-      "Chip 10 balls trying to land each one on the towel.",
-      "Count any ball that lands on or touches the towel as a hit."],
-    successCriteria:"6 of 10 hits.",
-    skillAreas:["chippingGreenside"], clubs:["wedges"], defaultMinutes:8, suitablePhases:["warmup","block"], zone:"shortGame", difficulty:2, reps:"10 chips" },
-
-  { id:"chip.highlow", name:"High-Low Wedge", summary:"Same target, two trajectories — PW low check vs LW high stop.",
-    instructions:[
-      "Pick a target hole about 15 yd away.",
-      "Hit 5 low bump-and-runs with a PW.",
-      "Hit 5 high soft chips with your LW.",
-      "Notice landing spot, total roll, stop pattern."],
-    successCriteria:"All 10 finish inside 6 ft.",
-    skillAreas:["chippingGreenside"], clubs:["wedges","shortIrons"], defaultMinutes:10, suitablePhases:["block"], zone:"shortGame", difficulty:3, reps:"10 chips" },
-
-  { id:"chip.bumprun.7i", name:"Bump-and-Run 7i", summary:"Use a 7-iron from the fringe — low, predictable rollers.",
-    instructions:[
-      "From the fringe with at least 30 ft to the hole, use a 7-iron.",
-      "Putting-style grip, ball back, hands forward.",
-      "Land it on the green 1/3 of the way; let it roll out.",
-      "Hit 8 balls."],
-    successCriteria:"6 of 8 inside 6 ft.",
-    skillAreas:["chippingGreenside"], clubs:["shortIrons"], defaultMinutes:8, suitablePhases:["block","transfer"], zone:"shortGame", difficulty:2, reps:"8 chips" },
-
-  { id:"chip.lievariety", name:"Lie Variety", summary:"Random lies — tight, fluff, downhill, rough. Adapt every shot.",
-    instructions:[
-      "Toss 5 balls into different lies around the green.",
-      "Play each one to the same hole with whatever club fits.",
-      "Score: 2 = up & down, 1 = inside 6 ft, 0 = outside."],
-    successCriteria:"Score ≥6 of 10.",
-    skillAreas:["chippingGreenside","transferRandom"], clubs:["wedges","shortIrons"], defaultMinutes:12, suitablePhases:["transfer","block"], zone:"shortGame", difficulty:4, reps:"5 lies" },
-
-  { id:"chip.upanddown", name:"Up & Down Test", summary:"Pick 10 random spots within 20 yd. Score yourself like on the course.",
-    instructions:[
-      "Drop one ball, no second chance.",
-      "Get it in the hole in 2 shots.",
-      "Pick new spot. Repeat 10 times.",
-      "Track up & down percentage."],
-    successCriteria:"5 of 10 up & downs.",
-    skillAreas:["chippingGreenside","transferRandom","mentalPressure"], clubs:["wedges","putter"], defaultMinutes:15, suitablePhases:["transfer"], zone:"shortGame", difficulty:4, reps:"10 attempts" },
-
-  { id:"chip.oneclub5", name:"One Club, Five Shots", summary:"Only your sand wedge — vary loft via setup and motion.",
-    instructions:[
-      "To the same hole, only with your SW, hit:",
-      "1. Low bump-and-run.",
-      "2. Standard chip.",
-      "3. Higher cut chip (face open).",
-      "4. Flop with stable lower body.",
-      "5. Spinner — sharp acceleration, hands forward."],
-    successCriteria:"All 5 finish inside 8 ft.",
-    skillAreas:["chippingGreenside"], clubs:["wedges"], defaultMinutes:12, suitablePhases:["block"], zone:"shortGame", difficulty:4, reps:"5 shots" },
-
-  { id:"chip.pitch.distances", name:"Distance Wedges", summary:"Partial wedges at 30, 40, 50, 60 yards. Carry control.",
-    instructions:[
-      "Use one wedge (SW or GW).",
-      "Hit 5 balls at 30 yd, then 5 at 40, 5 at 50, 5 at 60.",
-      "Adjust by swing length, not effort.",
-      "Score: ≤8 yd = 1 pt, ≤4 yd = 2 pts."],
-    successCriteria:"Score ≥24 of 40.",
-    skillAreas:["chippingPitch","wedgePartial"], clubs:["wedges"], defaultMinutes:15, suitablePhases:["block"], zone:"shortGameOrRange", difficulty:3, reps:"20 balls" },
-
-  { id:"chip.spincontrol", name:"Spin Control", summary:"Pair high-spin and low-spin chips to the same target.",
-    instructions:[
-      "Pick a hole 12 yd away on a green that allows running.",
-      "Hit 5 high-spin chips: clean lie, sharp descent, hands forward.",
-      "Hit 5 low-spin chips: ball back, less wrist, sweep.",
-      "Compare landing patterns."],
-    successCriteria:"Clear difference in roll-out groups.",
-    skillAreas:["chippingGreenside"], clubs:["wedges"], defaultMinutes:10, suitablePhases:["block"], zone:"shortGame", difficulty:4, reps:"10 chips" },
-
-  // Iron play
-  { id:"iron.9window", name:"9-Window with 7i", summary:"Nine trajectories: high/mid/low × left/center/right.",
-    instructions:[
-      "Pick a target ~150 yd away.",
-      "Hit 9 balls, one for each cell of the 3×3 grid:",
-      "high-left, high-center, high-right, mid-left, … low-right.",
-      "Plan the ball flight before each swing."],
-    successCriteria:"Recognizable difference between cells; 5+ that match intent.",
-    skillAreas:["ironMid"], clubs:["midIrons"], defaultMinutes:14, suitablePhases:["block"], zone:"range", difficulty:4, reps:"9 shots" },
-
-  { id:"iron.numbergame", name:"Number Game", summary:"Call the carry distance before each shot, then hit it.",
-    instructions:[
-      "Pick a club and a target line.",
-      "Before each swing, call out a carry number aloud.",
-      "Hit. Compare to actual (use a launch monitor or estimate from flags).",
-      "5 shots per club, rotating PW → 6-iron."],
-    successCriteria:"Average miss < 6 yards of the called number.",
-    skillAreas:["ironShort","ironMid","ironLong"], clubs:["shortIrons","midIrons","longIrons"], defaultMinutes:15, suitablePhases:["block","transfer"], zone:"range", difficulty:3, reps:"20 shots" },
-
-  { id:"iron.alignment.path", name:"Alignment Stick Path", summary:"Two sticks frame your swing path — fix in/out tendencies.",
-    instructions:[
-      "Lay one stick on the ground along your target line, just inside the ball.",
-      "Lay a second 2 ft outside the ball, parallel, forming a corridor.",
-      "Hit 10 balls keeping the club through the corridor.",
-      "If your miss is a slice/pull — narrow the corridor."],
-    successCriteria:"Consistent shape; no contact with either stick.",
-    skillAreas:["ironMid","ironShort"], clubs:["midIrons","shortIrons"], defaultMinutes:10, suitablePhases:["warmup","block"], zone:"range", difficulty:2, reps:"10 shots" },
-
-  { id:"iron.half.pw", name:"Half-Swing PW", summary:"PW at 50% — controls tempo and contact.",
-    instructions:[
-      "Use a PW. Take a half backswing (left arm to parallel-ish).",
-      "Hit 12 balls focused on smooth tempo, low finish.",
-      "Carry should sit around 60 yd, very repeatable."],
-    successCriteria:"10+ of 12 strike center-face within 6 yd of target.",
-    skillAreas:["wedgePartial","ironShort"], clubs:["wedges","shortIrons"], defaultMinutes:10, suitablePhases:["warmup","block"], zone:"range", difficulty:2, reps:"12 shots" },
-
-  { id:"iron.random.club", name:"Random Club Carousel", summary:"Mix clubs and targets every shot — like the course.",
-    instructions:[
-      "Write down 6 clubs on a list (e.g. 7i, SW, 9i, hybrid, PW, 5i).",
-      "Pick a different target for each.",
-      "Full routine on every ball: read, commit, swing.",
-      "12 shots. Switch club every shot."],
-    successCriteria:"Hit your target line on 9 of 12.",
-    skillAreas:["transferRandom","ironMid","ironShort","ironLong"], clubs:["shortIrons","midIrons","longIrons","wedges"], defaultMinutes:14, suitablePhases:["transfer"], zone:"range", difficulty:4, reps:"12 shots" },
-
-  { id:"iron.stinger", name:"Stinger Drill", summary:"Low 5-iron — ball back, hands forward, knock-down finish.",
-    instructions:[
-      "Tee a ball low or hit off turf.",
-      "Use a 5-iron. Ball 1 inch back of center, hands ahead.",
-      "Three-quarter swing, finish low and abbreviated.",
-      "Hit 8 balls focused on flighting it down."],
-    successCriteria:"Most balls peak under tree-height; consistent shape.",
-    skillAreas:["ironLong"], clubs:["longIrons"], defaultMinutes:10, suitablePhases:["block"], zone:"range", difficulty:4, reps:"8 shots" },
-
-  { id:"iron.fairway.alley", name:"Fairway Alley", summary:"Mid-iron tee shots into a 20-yd wide alley.",
-    instructions:[
-      "Pick two range markers ~20 yd apart.",
-      "Tee up. Use a mid iron (6, 7, 8).",
-      "Hit 10 tee shots — each one must land in the alley.",
-      "Count hits. Move alley narrower if you're crushing it."],
-    successCriteria:"8 of 10 in the alley.",
-    skillAreas:["ironMid","driverAccuracy"], clubs:["midIrons"], defaultMinutes:10, suitablePhases:["block","transfer"], zone:"range", difficulty:3, reps:"10 shots" },
-
-  { id:"iron.stripe.6i", name:"Stripe Test 6i", summary:"Consistent ball-first contact with a 6-iron.",
-    instructions:[
-      "Spray your face with foot powder or use impact tape if you have it.",
-      "Hit 10 balls with a 6-iron focused on a divot AFTER the ball.",
-      "Self-rate strike: thin / center / heavy."],
-    successCriteria:"7 of 10 center strikes.",
-    skillAreas:["ironMid"], clubs:["midIrons"], defaultMinutes:10, suitablePhases:["warmup","block"], zone:"range", difficulty:3, reps:"10 shots" },
-
-  { id:"iron.ladder.gap", name:"Iron Ladder", summary:"Same swing, descending clubs — proves your gapping.",
-    instructions:[
-      "Hit 3 shots with each: PW, 9, 8, 7, 6.",
-      "Same tempo each time. Note carry distances.",
-      "Look for ~10 yd gaps between clubs."],
-    successCriteria:"Clean ordering of distances, gaps within 4 yd of expectation.",
-    skillAreas:["ironShort","ironMid"], clubs:["shortIrons","midIrons"], defaultMinutes:12, suitablePhases:["block"], zone:"range", difficulty:2, reps:"15 shots" },
-
-  { id:"iron.pressure.closeout", name:"Pressure Closeout", summary:"Three in a row inside 10 yards of the pin — or restart.",
-    instructions:[
-      "Pick a club and a flag.",
-      "You must land 3 consecutive shots within 10 yd of the flag.",
-      "Any miss resets the streak to 0.",
-      "Limit: 15 balls total."],
-    successCriteria:"Chain of 3 within the ball budget.",
-    skillAreas:["mentalPressure","ironMid","ironShort"], clubs:["shortIrons","midIrons"], defaultMinutes:10, suitablePhases:["transfer"], zone:"range", difficulty:4, reps:"Up to 15 shots" },
-
-  // Hybrids / Woods
-  { id:"wood.sweep", name:"Fairway Wood Sweep", summary:"3-wood off turf — sweep the grass, no divot.",
-    instructions:[
-      "Place a tee 6 inches behind the ball, lying flat.",
-      "Hit a 3-wood; sweep without disturbing the tee.",
-      "8 balls."],
-    successCriteria:"6 of 8 clean strikes that don't touch the back tee.",
-    skillAreas:["woodsHybrid"], clubs:["fairwayWoods"], defaultMinutes:10, suitablePhases:["block"], zone:"range", difficulty:4, reps:"8 shots" },
-
-  { id:"wood.hybrid.trouble", name:"Hybrid From Trouble", summary:"Hybrid with a tricky lie — tee low or scruffy mat.",
-    instructions:[
-      "Set up a degraded lie: tee on the ground, or rough mat.",
-      "Use your hybrid. Make a steeper-than-fairway-wood swing.",
-      "Hit 8 balls, focus on getting it airborne with shape."],
-    successCriteria:"Most balls launch and travel intended shape.",
-    skillAreas:["woodsHybrid"], clubs:["hybrids"], defaultMinutes:10, suitablePhases:["block"], zone:"range", difficulty:4, reps:"8 shots" },
-
-  { id:"wood.tee.deck", name:"Tee vs Deck", summary:"Same fairway wood — alternate teed up and off the deck.",
-    instructions:[
-      "Hit 4 with your 3-wood teed low.",
-      "Hit 4 with your 3-wood off the mat/turf.",
-      "Compare contact and start direction."],
-    successCriteria:"Both groups hold a tight start window.",
-    skillAreas:["woodsHybrid","driverAccuracy"], clubs:["fairwayWoods"], defaultMinutes:10, suitablePhases:["block","transfer"], zone:"range", difficulty:3, reps:"8 shots" },
-
-  { id:"wood.club.decision", name:"Club Decision Hole", summary:"Imagine a par 4. Pick a club off the tee. Justify it.",
-    instructions:[
-      "Visualize a 380-yard par 4 with bunkers at 250.",
-      "Pick what you'd hit off the tee (driver / 3w / hybrid / iron).",
-      "Hit 3 shots with that club to your intended target.",
-      "Then play your 'second shot' from a guessed distance."],
-    successCriteria:"Plan matches outcome on at least 2 of 3.",
-    skillAreas:["woodsHybrid","transferRandom"], clubs:["hybrids","fairwayWoods","midIrons","driver"], defaultMinutes:12, suitablePhases:["transfer"], zone:"range", difficulty:3, reps:"6 shots" },
-
-  // Driver
-  { id:"drv.tee.height", name:"Tee Height Variety", summary:"Three tee heights — see how launch changes.",
-    instructions:[
-      "Hit 3 shots tee low (half-ball above crown).",
-      "Hit 3 shots standard (half-ball above crown).",
-      "Hit 3 shots high (ball fully above crown).",
-      "Note carry & spin behavior for each."],
-    successCriteria:"Identify which height gives best mix of carry and roll.",
-    skillAreas:["driverDistance"], clubs:["driver"], defaultMinutes:12, suitablePhases:["block"], zone:"range", difficulty:3, reps:"9 shots" },
-
-  { id:"drv.fadedraw", name:"Fade-Draw Alternate", summary:"Force shape control off the tee.",
-    instructions:[
-      "Pick a target line.",
-      "Hit shot #1: intentional fade — open face, slightly out-to-in.",
-      "Hit shot #2: intentional draw — closed face, in-to-out.",
-      "Repeat for 10 total."],
-    successCriteria:"Each pair shows a clear shape difference.",
-    skillAreas:["driverAccuracy"], clubs:["driver"], defaultMinutes:12, suitablePhases:["block"], zone:"range", difficulty:4, reps:"10 shots" },
-
-  { id:"drv.fairway.finder", name:"Fairway Finder", summary:"Pick a 30-yd alley and pound the driver into it.",
-    instructions:[
-      "Pick two markers ~30 yd apart at your typical driver carry.",
-      "Hit 10 drivers — each must land in the alley.",
-      "If your miss is consistently one side, narrow that side."],
-    successCriteria:"7 of 10 in the alley.",
-    skillAreas:["driverAccuracy"], clubs:["driver"], defaultMinutes:12, suitablePhases:["block","transfer"], zone:"range", difficulty:3, reps:"10 shots" },
-
-  { id:"drv.speed.triple", name:"Speed Triple", summary:"3 max-effort driver swings with rest between sets.",
-    instructions:[
-      "Warm up properly first.",
-      "Hit 3 driver swings at 100% — speed first, shape second.",
-      "Rest 60 seconds. Repeat 3 sets (9 total).",
-      "Track ball speed if available."],
-    successCriteria:"Top-end speeds 2+ mph above your average.",
-    skillAreas:["driverDistance"], clubs:["driver"], defaultMinutes:10, suitablePhases:["block"], zone:"range", difficulty:4, reps:"9 shots" },
-
-  { id:"drv.routine.lock", name:"Routine Lock — Driver", summary:"Full pre-shot routine on every ball. No exceptions.",
-    instructions:[
-      "Hit 10 drivers, but EVERY ball gets:",
-      "1. Stand behind, pick a target.",
-      "2. Visualize ball flight.",
-      "3. Step in, align, one practice trigger.",
-      "4. Commit and swing within 8 seconds of setup."],
-    successCriteria:"Same routine every time, regardless of result.",
-    skillAreas:["driverAccuracy","mentalPressure"], clubs:["driver"], defaultMinutes:12, suitablePhases:["transfer"], zone:"range", difficulty:3, reps:"10 shots" },
-
-  // Mental / Transfer
-  { id:"mix.worstball", name:"Worst Ball", summary:"Hit two shots, play the worst — replicates back-9 pressure.",
-    instructions:[
-      "Pick a target.",
-      "Hit two balls in a row to that target.",
-      "'Play' the worse of the two — that's your next position.",
-      "Repeat for 10 shots total."],
-    successCriteria:"Stay within a 25-yd window 5+ times in a row.",
-    skillAreas:["mentalPressure","transferRandom"], clubs:["midIrons","shortIrons","wedges"], defaultMinutes:12, suitablePhases:["transfer"], zone:"range", difficulty:4, reps:"10 shots" },
-
-  { id:"mix.simulated.hole", name:"Simulated Hole", summary:"Driver → iron → wedge → putter. One ball, one swing each.",
-    instructions:[
-      "Imagine a par-4 you know well.",
-      "Tee shot: driver. Approach: hit the iron you'd actually hit.",
-      "Pretend wedge approach: hit it.",
-      "Then go practice the putt you'd have, 10 yd putt to a flag.",
-      "Played to a score? Note it."],
-    successCriteria:"Score the hole at or under par.",
-    skillAreas:["transferRandom","mentalPressure"], clubs:["driver","midIrons","wedges","putter"], defaultMinutes:14, suitablePhases:["transfer"], zone:"any", difficulty:4, reps:"1-2 holes" },
-
-  { id:"mix.the.test", name:"The Test (Closing 3)", summary:"Three final shots that count — putt, chip, mid iron.",
-    instructions:[
-      "End your session with these three shots, scored:",
-      "1. 6 ft putt — make or fail.",
-      "2. Chip from 12 yd — inside 6 ft or fail.",
-      "3. 150 yd iron — within 20 yd of pin or fail.",
-      "If any fail, log it. The drill is the result."],
-    successCriteria:"Pass all 3.",
-    skillAreas:["mentalPressure","transferRandom"], clubs:["putter","wedges","midIrons"], defaultMinutes:8, suitablePhases:["cooldown","transfer"], zone:"any", difficulty:4, reps:"3 shots" },
-
-  // Cool-down / feel
-  { id:"cool.feel.wedge", name:"Wedge Feel Putts", summary:"Soft wedges to a 30-yd target. End on a quiet, clean strike.",
-    instructions:[
-      "Pick a 30-40 yd target.",
-      "Hit 8 soft, easy SW shots.",
-      "No effort grading — just feel and rhythm. Walk away after."],
-    successCriteria:"Last 4 in a row feel clean.",
-    skillAreas:["wedgePartial"], clubs:["wedges"], defaultMinutes:5, suitablePhases:["cooldown","warmup"], zone:"shortGameOrRange", difficulty:1, reps:"8 shots" },
-
-  { id:"cool.feel.putt", name:"Lag Feel Cool-Down", summary:"10 long putts to nothing in particular — just feel.",
-    instructions:[
-      "Roll 10 putts of varied length on a flat stretch.",
-      "Watch each one finish. No scoring.",
-      "Notice what the good ones feel like."],
-    successCriteria:"Walk away feeling smooth.",
-    skillAreas:["puttingLag"], clubs:["putter"], defaultMinutes:5, suitablePhases:["cooldown","warmup"], zone:"putting", difficulty:1, reps:"10 putts" },
-];
-
-const DRILLS_BY_ID = Object.fromEntries(DRILLS.map(d => [d.id, d]));
-
-// ---------- 3. Storage ----------
-
-const STORAGE_KEY = "rangecaddy.v1";
+const STORAGE_KEY = "rangecaddy.v2";
 
 function defaultState() {
   return {
-    skills: {},               // { skillKey: { alpha, beta, observationCount, lastUpdated } }
-    sessions: [],             // newest first
-    preferences: {
-      lastFacility: "fullFacility",
-      lastClubs: ["putter", "wedges", "shortIrons", "midIrons", "driver"],
-      lastTargetMinutes: 45,
-    },
+    skills: {},
+    sessions: [],
+    prefs: { time: 45, facility: "full", clubs: ["putter","wedges","irons","driver"] },
   };
 }
-
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultState();
-    const s = JSON.parse(raw);
-    return { ...defaultState(), ...s };
+    return { ...defaultState(), ...JSON.parse(raw) };
   } catch (e) {
-    console.warn("Failed to load state:", e);
     return defaultState();
   }
 }
-
 function saveState() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch (e) {
-    console.warn("Failed to save state:", e);
-  }
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  catch (e) {}
 }
 
-function freshSkill() {
-  return { alpha: 2.0, beta: 2.0, observationCount: 0, lastUpdated: null };
-}
-
-// ---------- 4. Bayesian engine ----------
+/* ─── Bayesian engine ─── */
 
 const BASE_WEIGHT = 2.0;
 const NEUTRAL_ALPHA = 2.0;
 const NEUTRAL_BETA = 2.0;
 const DECAY_HALF_LIFE_DAYS = 30;
 
-const RATING_TO_FRACTION = { 1: 0.10, 2: 0.30, 3: 0.55, 4: 0.75, 5: 0.92 };
-const RATING_LABELS = { 1: "Poor", 2: "Below", 3: "Average", 4: "Good", 5: "Excellent" };
-const RATING_CLASSES = { 1: "poor", 2: "belowAverage", 3: "average", 4: "good", 5: "excellent" };
+// 3-point rating → success fraction
+const RATING_TO_FRAC = { 1: 0.10, 3: 0.55, 5: 0.92 };
 
+function freshSkill() {
+  return { alpha: NEUTRAL_ALPHA, beta: NEUTRAL_BETA, observationCount: 0, lastUpdated: null };
+}
 function skillMean(s) {
   if (!s) return 0.5;
   return s.alpha / (s.alpha + s.beta);
 }
 function skillStddev(s) {
-  if (!s) return 0.25;
+  if (!s) return 0.224; // Beta(2,2) stddev
   const sum = s.alpha + s.beta;
   if (sum <= 1) return 0.5;
-  const v = (s.alpha * s.beta) / (sum * sum * (sum + 1));
-  return Math.sqrt(v);
+  return Math.sqrt((s.alpha * s.beta) / (sum * sum * (sum + 1)));
 }
-
 function decayInPlace(s) {
-  if (!s || !s.lastUpdated) return;
+  if (!s.lastUpdated) return;
   const days = (Date.now() - s.lastUpdated) / 86_400_000;
   if (days <= 0) return;
   const factor = Math.pow(0.5, days / DECAY_HALF_LIFE_DAYS);
   s.alpha = NEUTRAL_ALPHA + (s.alpha - NEUTRAL_ALPHA) * factor;
   s.beta  = NEUTRAL_BETA  + (s.beta  - NEUTRAL_BETA)  * factor;
 }
-
 function applyRating(rating, drill) {
+  const r = RATING_TO_FRAC[rating];
+  if (r === undefined) return;
   drill.skillAreas.forEach((skillKey, idx) => {
-    const posWeight = idx === 0 ? 1.0 : idx === 1 ? 0.6 : 0.4;
-    const difficultyBoost = 0.8 + 0.1 * drill.difficulty;
-    const n = BASE_WEIGHT * posWeight * difficultyBoost;
-    const r = RATING_TO_FRACTION[rating];
+    const w = idx === 0 ? 1.0 : idx === 1 ? 0.6 : 0.4;
+    const n = BASE_WEIGHT * w;
     if (!state.skills[skillKey]) state.skills[skillKey] = freshSkill();
     const s = state.skills[skillKey];
     decayInPlace(s);
@@ -1004,55 +506,6 @@ function applyRating(rating, drill) {
     s.lastUpdated = Date.now();
   });
 }
-
-// ---------- 5. Beta sampler (Marsaglia-Tsang Gamma → Beta) ----------
-
-function standardNormal() {
-  const u1 = Math.random() + 1e-12;
-  const u2 = Math.random();
-  return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
-}
-
-function gammaSample(shape) {
-  if (shape < 1) {
-    const u = Math.random() + 1e-12;
-    return gammaSample(shape + 1) * Math.pow(u, 1.0 / shape);
-  }
-  const d = shape - 1.0 / 3.0;
-  const c = 1.0 / Math.sqrt(9.0 * d);
-  // Limit iterations as a safety net (extremely rare to need many).
-  for (let i = 0; i < 1000; i++) {
-    const x = standardNormal();
-    const v = Math.pow(1 + c * x, 3);
-    if (v <= 0) continue;
-    const u = Math.random() + 1e-12;
-    const x2 = x * x;
-    if (u < 1 - 0.0331 * x2 * x2) return d * v;
-    if (Math.log(u) < 0.5 * x2 + d * (1 - v + Math.log(v))) return d * v;
-  }
-  return d; // fallback (mean of Gamma(d, 1) ~= d)
-}
-
-function betaSample(alpha, beta) {
-  const a = Math.max(alpha, 1e-6);
-  const b = Math.max(beta, 1e-6);
-  const x = gammaSample(a);
-  const y = gammaSample(b);
-  return x / (x + y + 1e-12);
-}
-
-function sampleTheta(skillKey) {
-  const s = state.skills[skillKey];
-  if (s) return betaSample(s.alpha, s.beta);
-  return betaSample(NEUTRAL_ALPHA, NEUTRAL_BETA);
-}
-
-/// "Need" score per skill, used by the session generator.
-/// Deterministic-leaning: high when posterior mean is low (weakness),
-/// with a smaller bonus from stddev (uncertainty) so untouched skills
-/// still get probed occasionally. A tiny noise term breaks ties.
-/// This is more predictable for users than pure Thompson sampling — when
-/// you rate something poorly, you want to see more of it next time.
 function needFor(skillKey) {
   const s = state.skills[skillKey];
   const mean = skillMean(s);
@@ -1061,965 +514,470 @@ function needFor(skillKey) {
   return Math.max(0, (1 - mean) + 0.2 * sd + noise);
 }
 
-function currentMeans() {
-  const out = {};
-  for (const k of SKILL_KEYS) out[k] = skillMean(state.skills[k]);
-  return out;
-}
+/* ─── Session generator ─── */
 
-// ---------- 6. Session generator ----------
+const ALL_SKILLS = [...new Set(DRILLS.flatMap(d => d.skillAreas))];
 
 function timeBudget(target) {
   const warm = Math.max(5, Math.min(Math.round(target * 0.15), 10));
   const cool = target >= 35 ? Math.max(3, Math.min(Math.round(target * 0.10), 6)) : 0;
-  const transfer = target >= 40 ? Math.max(5, Math.min(Math.round(target * 0.20), 12)) : 0;
-  const block = Math.max(10, target - warm - cool - transfer);
-  return { warmup: warm, block, transfer, cooldown: cool };
+  const trans = target >= 40 ? Math.max(5, Math.min(Math.round(target * 0.20), 12)) : 0;
+  const block = Math.max(10, target - warm - cool - trans);
+  return { warmup: warm, block, transfer: trans, cooldown: cool };
 }
 
 function generatePlan({ facility, clubs, targetMinutes }) {
-  const clubSet = new Set(clubs);
-  const candidates = DRILLS.filter(d =>
-    zoneSupported(d.zone, facility) && d.clubs.every(c => clubSet.has(c))
+  const clubSet = expandClubs(clubs);
+  const cands = DRILLS.filter(d =>
+    zoneOK(d.zone, facility) && d.clubs.every(c => clubSet.has(c))
   );
+  if (cands.length === 0) return [];
 
-  const recentIDs = new Set();
-  state.sessions.slice(0, 2).forEach(s => s.drills.forEach(d => recentIDs.add(d.drillID)));
+  // Recent drills (last 2 sessions) get a penalty.
+  const recent = new Set();
+  state.sessions.slice(0, 2).forEach(s => s.drills.forEach(d => recent.add(d.drillID)));
 
-  // Compute per-skill "need" (UCB-style: exploit known weaknesses,
-  // with small exploration bonus from uncertainty).
+  // Need per skill.
   const need = {};
-  SKILL_KEYS.forEach(k => { need[k] = needFor(k); });
+  ALL_SKILLS.forEach(k => need[k] = needFor(k));
 
-  // Zero out skills no candidate can train.
+  // Untrainable in this session → zero.
   const trainable = new Set();
-  candidates.forEach(c => c.skillAreas.forEach(s => trainable.add(s)));
+  cands.forEach(c => c.skillAreas.forEach(s => trainable.add(s)));
   Object.keys(need).forEach(k => { if (!trainable.has(k)) need[k] = 0; });
 
   function score(drill) {
     if (drill.skillAreas.length === 0) return 0;
-    let tot = 0, wsum = 0;
-    drill.skillAreas.forEach((s, idx) => {
-      const w = idx === 0 ? 1.0 : idx === 1 ? 0.6 : 0.4;
+    let tot = 0, ws = 0;
+    drill.skillAreas.forEach((s, i) => {
+      const w = i === 0 ? 1.0 : i === 1 ? 0.6 : 0.4;
       tot += w * (need[s] || 0);
-      wsum += w;
+      ws += w;
     });
-    let s = tot / wsum;
-    if (recentIDs.has(drill.id)) s *= 0.5;
+    let s = tot / ws;
+    if (recent.has(drill.id)) s *= 0.5;
     return s;
   }
-
-  function pickBest(pool) {
+  function best(pool) {
     if (pool.length === 0) return null;
-    return pool.reduce((best, d) => score(d) > score(best) ? d : best);
+    return pool.reduce((a, b) => score(a) > score(b) ? a : b);
   }
 
   const budget = timeBudget(targetMinutes);
-  const picked = [];
   const used = new Set();
+  const picked = [];
 
   // Warm-up
-  const warmupPool = candidates.filter(d =>
-    !used.has(d.id) && d.suitablePhases.includes("warmup") && d.difficulty <= 3
-  );
-  const warmup = pickBest(warmupPool);
-  if (warmup) {
-    used.add(warmup.id);
-    picked.push({ drill: warmup, phase: "warmup", minutes: budget.warmup });
-  }
+  let leftoverFromOptional = 0;
+  const w = best(cands.filter(d =>
+    !used.has(d.id) && d.suitablePhases.includes("warmup")
+  ));
+  if (w) { used.add(w.id); picked.push({ drill: w, phase: "warmup", minutes: budget.warmup }); }
+  else { leftoverFromOptional += budget.warmup; }
 
   // Focus blocks
   let remaining = budget.block;
-  const maxBlocks = targetMinutes >= 30 ? 3 : targetMinutes >= 18 ? 2 : 1;
-  const blockPicks = [];
+  const maxBlocks = targetMinutes >= 30 ? 3 : 2;
+  const blocks = [];
   for (let i = 0; i < maxBlocks; i++) {
     if (remaining < 6) break;
-    const blockPool = candidates.filter(d =>
-      !used.has(d.id) && d.suitablePhases.includes("block")
-    );
-    const pick = pickBest(blockPool);
+    const pick = best(cands.filter(d => !used.has(d.id) && d.suitablePhases.includes("block")));
     if (!pick) break;
-    const w = i === 0 ? 0.50 : i === 1 ? 0.30 : 0.20;
-    let minutes = Math.max(6, Math.min(Math.round(budget.block * w), remaining));
-    if (Math.abs(minutes - pick.defaultMinutes) <= 4) {
-      minutes = Math.min(pick.defaultMinutes, remaining);
-    }
-    remaining -= minutes;
+    const weights = [0.50, 0.30, 0.20];
+    let mins = Math.max(6, Math.min(Math.round(budget.block * weights[i]), remaining));
+    if (Math.abs(mins - pick.defaultMinutes) <= 4) mins = Math.min(pick.defaultMinutes, remaining);
+    remaining -= mins;
     used.add(pick.id);
-    const planned = { drill: pick, phase: "block", minutes };
-    blockPicks.push(planned);
-    picked.push(planned);
+    const p = { drill: pick, phase: "block", minutes: mins };
+    blocks.push(p);
+    picked.push(p);
   }
-  // Donate any leftover block minutes to the largest block.
-  if (remaining > 0 && blockPicks.length > 0) {
-    const biggest = blockPicks.reduce((a, b) => a.minutes >= b.minutes ? a : b);
-    biggest.minutes += remaining;
+  if (remaining > 0 && blocks.length > 0) {
+    const big = blocks.reduce((a, b) => a.minutes >= b.minutes ? a : b);
+    big.minutes += remaining;
   }
 
   // Transfer
   if (budget.transfer > 0) {
-    const transferPool = candidates.filter(d =>
-      !used.has(d.id) && d.suitablePhases.includes("transfer")
-    );
-    const t = pickBest(transferPool);
-    if (t) {
-      used.add(t.id);
-      picked.push({ drill: t, phase: "transfer", minutes: budget.transfer });
-    }
+    const t = best(cands.filter(d => !used.has(d.id) && d.suitablePhases.includes("transfer")));
+    if (t) { used.add(t.id); picked.push({ drill: t, phase: "transfer", minutes: budget.transfer }); }
+    else { leftoverFromOptional += budget.transfer; }
   }
-
   // Cool-down
   if (budget.cooldown > 0) {
-    const cooldownPool = candidates.filter(d =>
-      !used.has(d.id) && d.suitablePhases.includes("cooldown") && d.difficulty <= 3
-    );
-    const c = pickBest(cooldownPool);
-    if (c) {
-      picked.push({ drill: c, phase: "cooldown", minutes: budget.cooldown });
-    }
+    const c = best(cands.filter(d => !used.has(d.id) && d.suitablePhases.includes("cooldown")));
+    if (c) picked.push({ drill: c, phase: "cooldown", minutes: budget.cooldown });
+    else { leftoverFromOptional += budget.cooldown; }
+  }
+  // Donate any unused transfer/cooldown minutes back to the biggest focus block,
+  // so the user gets the full session length they asked for.
+  if (leftoverFromOptional > 0 && blocks.length > 0) {
+    const big = blocks.reduce((a, b) => a.minutes >= b.minutes ? a : b);
+    big.minutes += leftoverFromOptional;
   }
 
-  // Fallback: nothing matched (extremely restrictive inputs).
-  if (picked.length === 0 && candidates.length > 0) {
-    const fb = pickBest(candidates);
-    picked.push({ drill: fb, phase: "block", minutes: targetMinutes });
+  // Fallback for very restrictive setups.
+  if (picked.length === 0) {
+    const f = best(cands);
+    if (f) picked.push({ drill: f, phase: "block", minutes: targetMinutes });
   }
-
   return picked;
 }
 
 function createSession({ facility, clubs, targetMinutes }) {
   const plan = generatePlan({ facility, clubs, targetMinutes });
-  const snapshot = currentMeans();
-  const session = {
-    id: "s_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+  const sess = {
+    id: "s" + Date.now().toString(36),
     createdAt: Date.now(),
     completedAt: null,
-    facility,
-    clubs: [...clubs],
-    targetMinutes,
-    skillSnapshot: snapshot,
+    facility, clubs: [...clubs], targetMinutes,
     drills: plan.map((p, i) => ({
-      drillID: p.drill.id,
-      order: i,
-      phase: p.phase,
+      drillID: p.drill.id, order: i, phase: p.phase,
       plannedMinutes: p.minutes,
-      rating: null,
-      notes: "",
-      completedAt: null,
+      rating: null, completedAt: null,
     })),
   };
-  state.sessions.unshift(session);
+  state.sessions.unshift(sess);
   saveState();
-  return session;
+  return sess;
 }
 
-// ---------- 7. State + router ----------
+/* ─── App state & router ─── */
 
 let state = loadState();
 
-// View state — not persisted.
 const view = {
-  screen: "home",       // "home" | "setup" | "plan" | "runner" | "summary" | "history" | "skills"
+  screen: "home",        // home | setup | drill | done | history
   sessionId: null,
   drillIndex: 0,
-  rating: { open: false, rating: null, notes: "" },
-  // setup-form working values
-  setup: null,
-  // timer
-  timer: { running: false, elapsed: 0, planned: 0, intervalId: null },
+  setup: null,           // working setup form: { time, facility, clubs:Set }
 };
 
-function navigate(screen, params = {}) {
+function go(screen, params = {}) {
   view.screen = screen;
   if (params.sessionId !== undefined) view.sessionId = params.sessionId;
   if (params.drillIndex !== undefined) view.drillIndex = params.drillIndex;
-  stopTimer();
   render();
   window.scrollTo({ top: 0, behavior: "instant" });
 }
 
-function getSession(id) {
-  return state.sessions.find(s => s.id === id);
-}
-
-// ---------- 8. Timer ----------
-
-function startTimer(plannedMinutes) {
-  stopTimer();
-  view.timer.planned = plannedMinutes;
-  if (!view.timer.elapsed) view.timer.elapsed = 0;
-  view.timer.running = true;
-  view.timer.intervalId = setInterval(() => {
-    view.timer.elapsed += 1;
-    updateTimerUI();
-  }, 1000);
-  updateTimerUI();
-}
-function pauseTimer() {
-  view.timer.running = false;
-  if (view.timer.intervalId) { clearInterval(view.timer.intervalId); view.timer.intervalId = null; }
-  updateTimerUI();
-}
-function stopTimer() {
-  if (view.timer.intervalId) { clearInterval(view.timer.intervalId); view.timer.intervalId = null; }
-  view.timer.running = false;
-  view.timer.elapsed = 0;
-}
-function resetTimer() {
-  pauseTimer();
-  view.timer.elapsed = 0;
-  updateTimerUI();
-}
-function fmtTime(t) {
-  const m = Math.floor(t / 60), s = t % 60;
-  return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
-}
-function updateTimerUI() {
-  const d = document.getElementById("timerDisplay");
-  if (d) {
-    d.textContent = fmtTime(view.timer.elapsed);
-    if (view.timer.elapsed > view.timer.planned * 60) d.classList.add("over");
-    else d.classList.remove("over");
-  }
-  const btn = document.getElementById("timerToggle");
-  if (btn) {
-    btn.textContent = view.timer.running ? "⏸  Pause"
-                    : view.timer.elapsed > 0 ? "▶  Resume"
-                    : "▶  Start";
-  }
-}
-
-// ---------- 9. Rendering ----------
+function activeSession() { return state.sessions.find(s => s.id === view.sessionId); }
 
 function esc(s) {
-  return String(s)
-    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
     .replace(/"/g,"&quot;").replace(/'/g,"&#039;");
 }
 
-function colorForMean(m) {
-  if (m < 0.35) return "var(--red)";
-  if (m < 0.55) return "var(--orange)";
-  if (m < 0.7)  return "var(--yellow)";
-  if (m < 0.85) return "var(--mint)";
-  return "var(--green)";
-}
+/* ─── Screens ─── */
 
-function topBar(title, backScreen) {
-  if (!backScreen) return `<div class="top"><h1>${esc(title)}</h1></div>`;
-  return `
-    <div class="top">
-      <button class="back" data-action="navigate" data-screen="${backScreen}">‹ Back</button>
-      <h2 style="margin:0;">${esc(title)}</h2>
-      <div class="spacer"></div>
-    </div>`;
-}
+function screenHome() {
+  // Find an unfinished session, if any.
+  const unfinished = state.sessions.find(s => !s.completedAt);
+  const resumeBlock = unfinished ? `
+    <button class="resume" data-action="resume" data-id="${unfinished.id}">
+      <span>Continue last session<br><span class="muted" style="font-size:12px;">${unfinished.targetMinutes} min · ${unfinished.drills.length} drills</span></span>
+      <span class="chev">›</span>
+    </button>` : "";
 
-function tabBar() {
-  const tabs = [
-    { key: "home",    label: "Practice", icon: "🏌️", screens: ["home","setup","plan","runner","summary"] },
-    { key: "history", label: "History",  icon: "🕘", screens: ["history"] },
-    { key: "skills",  label: "Skills",   icon: "📊", screens: ["skills"] },
-  ];
-  return `<div class="tabs">
-    ${tabs.map(t => `
-      <button class="tab ${t.screens.includes(view.screen) ? "active" : ""}"
-              data-action="navigate" data-screen="${t.key}">
-        <div class="icon">${t.icon}</div>
-        <div>${t.label}</div>
-      </button>`).join("")}
-  </div>`;
-}
-
-// ----- Home -----
-function renderHome() {
-  const recent = state.sessions[0];
-  const means = currentMeans();
-  const weakest = SKILL_KEYS
-    .filter(k => state.skills[k])
-    .map(k => ({ k, m: means[k] }))
-    .filter(x => x.m < 0.55)
-    .sort((a, b) => a.m - b.m)
-    .slice(0, 3);
-
-  let recentCard = "";
-  if (recent) {
-    const done = recent.drills.filter(d => d.rating !== null).length;
-    recentCard = `
-      <div class="card">
-        <div class="row spread mb-8">
-          <span class="muted">Last session · ${timeAgo(recent.createdAt)}</span>
-          <span class="pill ${recent.completedAt ? "" : "orange"}">${recent.completedAt ? "Done" : "In progress"}</span>
-        </div>
-        <div class="stats mb-8">
-          <div class="stat"><div class="val">${recent.targetMinutes}</div><div class="label">Min</div></div>
-          <div class="stat"><div class="val">${recent.drills.length}</div><div class="label">Drills</div></div>
-          <div class="stat"><div class="val">${done}/${recent.drills.length}</div><div class="label">Rated</div></div>
-        </div>
-        <button class="btn btn-secondary" data-action="open-session" data-id="${recent.id}">
-          ${recent.completedAt ? "View summary" : "Resume session"}
-        </button>
-      </div>`;
-  }
-
-  const insights = weakest.length ? `
-    <div class="card">
-      <h3>What we're working on</h3>
-      ${weakest.map(w => `
-        <div class="row spread" style="padding:6px 0;">
-          <span>${SKILLS[w.k]}</span>
-          <span class="muted">${Math.round(w.m * 100)}%</span>
-        </div>`).join("")}
-    </div>` : `
-    <div class="card">
-      <h3>What we're working on</h3>
-      <p class="muted">Once you rate a few drills, your top focus areas show up here.</p>
-      <button class="btn btn-ghost mt-12" data-action="seed-demo">Seed demo data</button>
-    </div>`;
+  const historyLink = state.sessions.some(s => s.completedAt) ? `
+    <div class="center mt-24">
+      <button class="btn-ghost" data-action="go" data-screen="history" style="border:none;background:none;cursor:pointer;font-family:inherit;color:var(--muted);font-size:14px;">
+        Past sessions
+      </button>
+    </div>` : "";
 
   return `
-    <div class="top"><h1>Range Caddy</h1></div>
-    <p class="muted mb-16">Tell us your facility, time, and clubs — we'll build the session.</p>
-    <div class="hero" data-action="navigate" data-screen="setup">
-      <h2>＋ New Session</h2>
-      <p>30–60 min, smart-picked from 40 drills</p>
+    <div class="hero">
+      <h1>Range Caddy</h1>
+      <p class="tag">Tell me what you've got. I'll build the session.</p>
+      <button class="btn btn-primary" data-action="go" data-screen="setup">Start Practicing</button>
+      ${resumeBlock}
     </div>
-    ${recentCard}
-    ${insights}
+    ${historyLink}
   `;
 }
 
-// ----- Setup -----
 function ensureSetup() {
   if (view.setup) return;
+  const p = state.prefs;
   view.setup = {
-    facility: state.preferences.lastFacility,
-    clubs: new Set(state.preferences.lastClubs),
-    minutes: state.preferences.lastTargetMinutes,
+    time: p.time,
+    facility: p.facility,
+    clubs: new Set(p.clubs),
   };
 }
 
-function renderSetup() {
+function screenSetup() {
   ensureSetup();
-  const f = FACILITIES[view.setup.facility];
-  const inds = [
-    { key: "range", label: "Range",      on: f.range },
-    { key: "short", label: "Short game", on: f.short },
-    { key: "putt",  label: "Putting",    on: f.putt },
-  ];
-  return `
-    ${topBar("New Session", "home")}
-    <div class="card">
-      <h3>Time</h3>
-      <div class="slider-row">
-        <span class="val" id="minVal">${view.setup.minutes} min</span>
-        <span class="label">${view.setup.minutes < 35 ? "Quick" : view.setup.minutes < 50 ? "Standard" : "Deep work"}</span>
-      </div>
-      <input id="minSlider" type="range" min="30" max="60" step="5" value="${view.setup.minutes}">
-    </div>
-
-    <div class="card">
-      <h3>Facility</h3>
-      <div class="facility-list">
-        ${Object.entries(FACILITIES).map(([k, v]) => `
-          <button class="picker ${view.setup.facility === k ? "on" : ""}" data-action="set-facility" data-key="${k}">
-            <span>${v.emoji} ${v.name}</span>
-            ${view.setup.facility === k ? "<span>✓</span>" : ""}
-          </button>`).join("")}
-      </div>
-      <div class="row mt-12" style="gap:14px;">
-        ${inds.map(i => `
-          <span class="${i.on ? '' : 'muted'}" style="font-size:13px;">
-            ${i.on ? "✓" : "✗"} ${i.label}
-          </span>`).join("")}
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>Clubs you'll use</h3>
-      <div class="chip-grid">
-        ${CLUB_KEYS.map(k => {
-          const on = view.setup.clubs.has(k);
-          return `<button class="chip ${on ? "on" : ""}" data-action="toggle-club" data-key="${k}">
-            <span>${CLUBS[k].emoji} ${CLUBS[k].name}</span>
-            <span class="checkmark"></span>
-          </button>`;
-        }).join("")}
-      </div>
-      <p class="tiny mt-12">Drills are filtered to only use clubs you've selected.</p>
-    </div>
-
-    <button class="btn btn-primary mt-12" data-action="generate" ${view.setup.clubs.size === 0 ? "disabled" : ""}>
-      Generate Session
-    </button>
-  `;
-}
-
-// ----- Plan -----
-function renderPlan() {
-  const s = getSession(view.sessionId);
-  if (!s) { return renderEmpty("Session not found"); }
-  const done = s.drills.filter(d => d.rating !== null).length;
-  const pct = s.drills.length === 0 ? 0 : (done / s.drills.length) * 100;
-  const firstUnrated = s.drills.findIndex(d => d.rating === null);
-  const startIndex = firstUnrated === -1 ? 0 : firstUnrated;
+  const fac = view.setup.facility;
+  // Filter club options based on facility — a putting-only setup doesn't need driver, etc.
+  const facObj = FACILITIES_BY_ID[fac];
 
   return `
-    ${topBar("Your Session", "home")}
-    <div class="card">
-      <div class="row spread mb-8">
-        <span>${FACILITIES[s.facility].emoji} ${FACILITIES[s.facility].name}</span>
-        <span class="muted">${s.targetMinutes} min · ${s.drills.length} drills</span>
-      </div>
-      <div class="progress"><div class="fill" style="width:${pct}%;"></div></div>
-      <div class="muted" style="font-size:13px;">${done} of ${s.drills.length} rated</div>
+    <div class="top">
+      <button class="back" data-action="go" data-screen="home">‹ Back</button>
+      <div></div>
     </div>
 
-    ${s.drills.map((dr, idx) => {
-      const drill = DRILLS_BY_ID[dr.drillID];
-      if (!drill) return "";
-      const phaseColor = phaseEmoji(dr.phase);
-      const rated = dr.rating !== null;
-      return `
-        <div class="drill-row" data-action="open-runner" data-index="${idx}">
-          <div class="row spread">
-            <span class="phase-tag">${phaseColor} ${dr.phase}</span>
-            <span class="${rated ? `pill` : `pill-muted pill`}">
-              ${rated ? RATING_LABELS[dr.rating] : `${dr.plannedMinutes} min`}
-            </span>
-          </div>
-          <div class="title">${esc(drill.name)}</div>
-          <div class="summary">${esc(drill.summary)}</div>
-        </div>`;
-    }).join("")}
-
-    <button class="btn btn-primary mt-12" data-action="open-runner" data-index="${startIndex}">
-      ${done === 0 ? "▶ Start Session" : "▶ Resume Session"}
-    </button>
-    ${done === s.drills.length && !s.completedAt ? `
-      <button class="btn btn-secondary mt-12" data-action="finalize-session">
-        ✓ Finish &amp; Save
-      </button>` : ""}
-  `;
-}
-
-function phaseEmoji(p) {
-  return p === "warmup" ? "🔥" : p === "block" ? "🎯" : p === "transfer" ? "🔀" : "🍃";
-}
-
-// ----- Runner -----
-function renderRunner() {
-  const s = getSession(view.sessionId);
-  if (!s) return renderEmpty("Session not found");
-  const idx = view.drillIndex;
-  if (idx >= s.drills.length) return renderRunnerDone(s);
-  const dr = s.drills[idx];
-  const drill = DRILLS_BY_ID[dr.drillID];
-  if (!drill) return renderEmpty("Drill not found");
-
-  const ratingSheet = view.rating.open ? renderRatingSheet(dr, drill) : "";
-
-  return `
-    ${topBar(drill.name, "plan")}
-    <div class="muted" style="display:flex; justify-content:space-between; font-size:13px;">
-      <span>Drill ${idx + 1} of ${s.drills.length}</span>
-      <span>${phaseEmoji(dr.phase)} ${dr.phase}</span>
-    </div>
-    <div class="progress mb-16"><div class="fill" style="width:${((idx) / s.drills.length) * 100}%;"></div></div>
-
-    <div class="card">
-      <h2 style="margin-bottom:6px;">${esc(drill.name)}</h2>
-      <p class="muted" style="margin-bottom:10px;">${esc(drill.summary)}</p>
-      <div class="row" style="flex-wrap:wrap; gap:6px; margin-bottom:6px;">
-        ${drill.clubs.map(c => `<span class="pill pill-muted">${CLUBS[c].emoji} ${CLUBS[c].name}</span>`).join("")}
-      </div>
-      <div class="row" style="flex-wrap:wrap; gap:6px;">
-        ${drill.skillAreas.map(s => `<span class="pill">${SKILLS[s]}</span>`).join("")}
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="row spread mb-8">
-        <h3 style="margin:0;">Timer</h3>
-        <span class="muted">Planned ${dr.plannedMinutes} min</span>
-      </div>
-      <div class="timer-display" id="timerDisplay">${fmtTime(view.timer.elapsed)}</div>
-      <div class="row gap-12">
-        <button class="btn btn-secondary" id="timerToggle" data-action="toggle-timer" data-planned="${dr.plannedMinutes}">
-          ${view.timer.running ? "⏸  Pause" : view.timer.elapsed > 0 ? "▶  Resume" : "▶  Start"}
+    <h3>How long?</h3>
+    <div class="choice-row">
+      ${TIMES.map(t => `
+        <button class="choice ${view.setup.time === t ? "on" : ""}" data-action="set-time" data-value="${t}">
+          <span class="big">${t}</span>
+          <span class="sub">minutes</span>
         </button>
-        <button class="btn btn-ghost" data-action="reset-timer">↺ Reset</button>
-      </div>
+      `).join("")}
     </div>
 
-    <div class="card">
-      <h3>How to do it</h3>
-      <ol class="steps">
-        ${drill.instructions.map((step, i) => `
-          <li><span class="num">${i + 1}.</span><span>${esc(step)}</span></li>`).join("")}
-      </ol>
-      <p class="tiny" style="margin-top:10px;">Reps: ${esc(drill.reps)}</p>
+    <h3>Where are you?</h3>
+    <div class="choice-row choice-2">
+      ${FACILITIES.map(f => `
+        <button class="choice ${view.setup.facility === f.id ? "on" : ""}" data-action="set-facility" data-value="${f.id}">
+          <span style="font-size:17px;font-weight:700;">${esc(f.label)}</span>
+          <span class="sub">${esc(f.sub)}</span>
+        </button>
+      `).join("")}
     </div>
 
-    <div class="card" style="background:var(--green-bg);">
-      <h3>Pass when…</h3>
-      <p style="margin:0;">${esc(drill.successCriteria)}</p>
-    </div>
-
-    <button class="btn btn-primary mt-16" data-action="open-rating">
-      ${dr.rating !== null ? "Update rating" : "I'm done — rate it"}
-    </button>
-    ${dr.rating !== null && idx < s.drills.length - 1 ? `
-      <button class="btn btn-ghost mt-12" data-action="next-drill">Next drill →</button>
-    ` : ""}
-
-    ${ratingSheet}
-  `;
-}
-
-function renderRunnerDone(s) {
-  return `
-    ${topBar("Done", "plan")}
-    <div class="empty">
-      <div class="icon">✅</div>
-      <h2>Session complete</h2>
-      <p class="muted">Every drill rated. The model has updated.</p>
-    </div>
-    <button class="btn btn-primary" data-action="show-summary">View summary</button>
-  `;
-}
-
-function renderRatingSheet(dr, drill) {
-  const sel = view.rating.rating;
-  return `
-    <div class="sheet-backdrop" data-action="close-rating">
-      <div class="sheet">
-        <div class="handle"></div>
-        <h2>${esc(drill.name)}</h2>
-        <p class="muted mb-16">${esc(drill.successCriteria)}</p>
-        <h3>How did that go?</h3>
-        <div class="rate-list">
-          ${[5,4,3,2,1].map(r => `
-            <button class="rate-btn ${RATING_CLASSES[r]} ${sel === r ? "selected" : ""}"
-                    data-action="select-rating" data-rating="${r}">
-              <span class="dot"></span>
-              <span>${RATING_LABELS[r]}</span>
-            </button>`).join("")}
-        </div>
-        <h3 class="mt-16">Notes (optional)</h3>
-        <textarea id="ratingNotes" placeholder="Anything you noticed…">${esc(view.rating.notes)}</textarea>
-        <div class="row gap-12 mt-16">
-          <button class="btn btn-ghost" data-action="close-rating">Skip</button>
-          <button class="btn btn-primary" data-action="save-rating" ${sel === null ? "disabled" : ""}>Save</button>
-        </div>
-      </div>
-    </div>`;
-}
-
-// ----- Summary -----
-function renderSummary() {
-  const s = getSession(view.sessionId);
-  if (!s) return renderEmpty("Session not found");
-  const before = s.skillSnapshot || {};
-  const after = currentMeans();
-  const deltas = SKILL_KEYS
-    .map(k => {
-      const b = before[k] ?? 0.5;
-      const a = after[k] ?? b;
-      return { k, b, a, d: a - b };
-    })
-    .filter(x => Math.abs(x.d) >= 0.005)
-    .sort((a, b) => Math.abs(b.d) - Math.abs(a.d));
-
-  return `
-    ${topBar("Summary", "home")}
-    <div class="card">
-      <p class="muted" style="margin-bottom:8px;">${new Date(s.createdAt).toLocaleString()}</p>
-      <div class="row spread mb-8">
-        <span>${FACILITIES[s.facility].emoji} ${FACILITIES[s.facility].name}</span>
-        <span class="muted">${s.targetMinutes} min</span>
-      </div>
-      <div class="stats">
-        <div class="stat"><div class="val">${s.drills.length}</div><div class="label">Drills</div></div>
-        <div class="stat"><div class="val">${s.drills.filter(d => d.rating !== null).length}</div><div class="label">Rated</div></div>
-        <div class="stat"><div class="val">${avgRating(s).toFixed(1)}</div><div class="label">Avg</div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>Drills</h3>
-      ${s.drills.map(dr => {
-        const drill = DRILLS_BY_ID[dr.drillID];
-        if (!drill) return "";
-        const r = dr.rating;
+    <h3>What clubs?</h3>
+    <div class="choice-row choice-2">
+      ${CLUB_BUCKETS.map(c => {
+        const on = view.setup.clubs.has(c.id);
+        // Grey out clubs that don't fit the facility (e.g. driver on putting green).
+        const ok = clubFitsFacility(c.id, facObj);
         return `
-          <div style="padding:8px 0; border-bottom:1px solid var(--border);">
-            <div class="row spread">
-              <span style="font-weight:600;">${phaseEmoji(dr.phase)} ${esc(drill.name)}</span>
-              <span class="pill ${r === null ? "pill-muted" : ""}" style="color:${r === null ? '' : ratingColorVar(r)};">
-                ${r === null ? "—" : RATING_LABELS[r]}
-              </span>
-            </div>
-            ${dr.notes ? `<div class="tiny" style="font-style:italic; margin-top:4px;">"${esc(dr.notes)}"</div>` : ""}
-          </div>`;
+          <button class="choice ${on && ok ? "on" : ""}" data-action="toggle-club" data-value="${c.id}" ${ok ? "" : "disabled"}
+                  style="${ok ? "" : "opacity:0.35;cursor:not-allowed;"}">
+            <span style="font-size:17px;font-weight:700;">${esc(c.label)}</span>
+            <span class="sub">${on && ok ? "✓ selected" : ok ? "tap to add" : "not at this facility"}</span>
+          </button>`;
       }).join("")}
     </div>
 
-    <div class="card">
-      <h3>How the model moved</h3>
-      ${deltas.length === 0 ? `<p class="muted">No skill changes yet — rate some drills to update.</p>` :
-        deltas.map(d => `
-          <div class="row spread" style="padding:6px 0;">
-            <span style="flex:1;">${SKILLS[d.k]}</span>
-            <span class="muted tiny" style="margin-right:10px;">
-              ${Math.round(d.b * 100)}% → ${Math.round(d.a * 100)}%
-            </span>
-            <span class="${d.d > 0 ? "delta-pos" : "delta-neg"}" style="min-width:40px; text-align:right;">
-              ${d.d > 0 ? "+" : ""}${Math.round(d.d * 100)}
-            </span>
-          </div>`).join("")}
-    </div>
-
-    <button class="btn btn-secondary mt-12" data-action="navigate" data-screen="home">Back to home</button>
+    <button class="btn btn-primary mt-12" data-action="generate" ${view.setup.clubs.size === 0 ? "disabled" : ""}>
+      Build my session
+    </button>
   `;
 }
 
-function ratingColorVar(r) {
-  return r === 1 ? "var(--red)"
-       : r === 2 ? "var(--orange)"
-       : r === 3 ? "var(--yellow)"
-       : r === 4 ? "var(--mint)"
-       : "var(--green)";
+function clubFitsFacility(bucketId, facObj) {
+  switch (bucketId) {
+    case "putter": return facObj.putt || facObj.range;
+    case "wedges": return facObj.short || facObj.range;
+    case "irons":  return facObj.range;
+    case "driver": return facObj.range;
+  }
+  return true;
 }
 
-function avgRating(s) {
-  const rs = s.drills.filter(d => d.rating !== null).map(d => d.rating);
-  if (rs.length === 0) return 0;
-  return rs.reduce((a, b) => a + b, 0) / rs.length;
+function phaseLabel(p) {
+  return p === "warmup" ? "Warm-up"
+       : p === "block"  ? "Focus"
+       : p === "transfer" ? "Pressure"
+       : "Cool-down";
 }
 
-// ----- History -----
-function renderHistory() {
-  if (state.sessions.length === 0) {
+function screenDrill() {
+  const s = activeSession();
+  if (!s) return screenEmpty("Session not found");
+  if (view.drillIndex >= s.drills.length) {
+    // We blew past the last drill — go to done.
+    if (!s.completedAt) { s.completedAt = Date.now(); saveState(); }
+    return screenDone(s);
+  }
+  const dr = s.drills[view.drillIndex];
+  const drill = DRILLS_BY_ID[dr.drillID];
+  if (!drill) return screenEmpty("Drill not found");
+
+  return `
+    <div class="top">
+      <button class="back" data-action="go" data-screen="home">‹ Quit</button>
+      <span class="stepcount">${view.drillIndex + 1} of ${s.drills.length}</span>
+    </div>
+
+    <div class="drill">
+      <div class="phase">${phaseLabel(dr.phase)}</div>
+      <h2>${esc(drill.name)}</h2>
+      <p class="summary">${esc(drill.summary)}</p>
+      <p class="planned">⏱ <span>${dr.plannedMinutes} min suggested</span></p>
+
+      <ol class="steps">
+        ${drill.instructions.map(step => `<li>${esc(step)}</li>`).join("")}
+      </ol>
+
+      <div class="pass">
+        <span class="label">Pass when</span>
+        <span>${esc(drill.successCriteria)}</span>
+      </div>
+
+      <div class="rate-prompt">How'd that go?</div>
+      <div class="rate-row">
+        <button class="rate r1" data-action="rate" data-value="1">
+          <span class="ico">😬</span><span class="lbl">Struggled</span>
+        </button>
+        <button class="rate r3" data-action="rate" data-value="3">
+          <span class="ico">👌</span><span class="lbl">Solid</span>
+        </button>
+        <button class="rate r5" data-action="rate" data-value="5">
+          <span class="ico">🔥</span><span class="lbl">Dialed</span>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function screenDone(s) {
+  const minutes = s ? s.targetMinutes : 0;
+  const drillCount = s ? s.drills.length : 0;
+  return `
+    <div class="done">
+      <div class="check">✓</div>
+      <h1>Nice work.</h1>
+      <p>${drillCount} drills · ${minutes} min<br>The model just learned from this one.</p>
+      <button class="btn btn-primary" data-action="go" data-screen="home">Done</button>
+    </div>
+  `;
+}
+
+function screenHistory() {
+  const done = state.sessions.filter(s => s.completedAt);
+  if (done.length === 0) {
     return `
-      ${topBar("History")}
-      <div class="empty">
-        <div class="icon">🕘</div>
-        <h2>No sessions yet</h2>
-        <p>Generate one from the Practice tab to get started.</p>
-      </div>`;
+      <div class="top">
+        <button class="back" data-action="go" data-screen="home">‹ Back</button>
+        <div></div>
+      </div>
+      <p class="muted center mt-24">Nothing here yet.</p>
+    `;
   }
   return `
-    ${topBar("History")}
-    ${state.sessions.map(s => {
-      const done = s.drills.filter(d => d.rating !== null).length;
-      return `
-        <div class="drill-row" data-action="open-session" data-id="${s.id}">
-          <div class="row spread mb-8">
-            <span style="font-weight:600;">${new Date(s.createdAt).toLocaleDateString(undefined,{weekday:"short", month:"short", day:"numeric"})}</span>
-            <span class="pill ${s.completedAt ? "" : "orange"}">${s.completedAt ? "Done" : "In progress"}</span>
-          </div>
-          <div class="row spread tiny">
-            <span>${FACILITIES[s.facility].emoji} ${FACILITIES[s.facility].name}</span>
-            <span>${s.targetMinutes} min · ${done}/${s.drills.length}</span>
-          </div>
-        </div>`;
-    }).join("")}
-    <button class="btn btn-danger mt-16" data-action="clear-history">Clear all history</button>
-  `;
-}
-
-// ----- Skills -----
-function renderSkills() {
-  return `
-    ${topBar("Your Skills")}
-    <div class="card">
-      <h3>Estimated mastery per skill</h3>
-      <p class="muted" style="margin:0;">Based on ${state.sessions.length} session${state.sessions.length === 1 ? "" : "s"}.
-      Bars show the current estimate; lower = needs work. The lighter band is uncertainty.</p>
+    <div class="top">
+      <button class="back" data-action="go" data-screen="home">‹ Back</button>
+      <div></div>
     </div>
-    ${SKILL_GROUPS.map(g => `
-      <div class="card">
-        <h3>${g.title}</h3>
-        ${g.keys.map(k => skillBarHTML(k)).join("")}
-      </div>`).join("")}
-    ${Object.keys(state.skills).length === 0 ? `
-      <button class="btn btn-ghost mt-12" data-action="seed-demo">Seed demo data</button>` : ""}
+    <h3>Past sessions</h3>
+    ${done.map(s => `
+      <div class="history-item">
+        <div class="date">${new Date(s.createdAt).toLocaleDateString(undefined, { weekday:"short", month:"short", day:"numeric" })}</div>
+        <div class="meta">${s.targetMinutes} min · ${s.drills.length} drills · ${FACILITIES_BY_ID[s.facility]?.label || s.facility}</div>
+      </div>
+    `).join("")}
   `;
 }
 
-function skillBarHTML(k) {
-  const s = state.skills[k];
-  const mean = skillMean(s);
-  const sd = skillStddev(s);
-  const lo = Math.max(0, mean - sd);
-  const hi = Math.min(1, mean + sd);
-  const c = colorForMean(mean);
-  const obs = s ? s.observationCount : 0;
+function screenEmpty(msg) {
   return `
-    <div class="skill-row">
-      <div class="top-row">
-        <span>${SKILLS[k]}</span>
-        <span style="color:${c}; font-weight:700;">${Math.round(mean * 100)}%</span>
-      </div>
-      <div class="skill-bar">
-        <div class="uncertainty" style="left:${lo*100}%; width:${(hi-lo)*100}%; background:${c};"></div>
-        <div class="mean" style="width:${mean*100}%; background:${c};"></div>
-      </div>
-      <div class="tiny" style="margin-top:2px;">${obs > 0 ? `${obs} observation${obs===1?"":"s"}` : "No data yet"}</div>
-    </div>`;
+    <div class="top"><button class="back" data-action="go" data-screen="home">‹ Back</button><div></div></div>
+    <p class="muted center mt-24">${esc(msg)}</p>
+  `;
 }
 
-// ----- Empty fallback -----
-function renderEmpty(msg) {
-  return `${topBar(msg, "home")}<div class="empty"><div class="icon">⚠️</div><p>${esc(msg)}</p></div>`;
-}
+/* ─── Render dispatcher ─── */
 
-// ----- Render dispatcher -----
 function render() {
-  let content;
+  let html;
   switch (view.screen) {
-    case "home":    content = renderHome();    break;
-    case "setup":   content = renderSetup();   break;
-    case "plan":    content = renderPlan();    break;
-    case "runner":  content = renderRunner();  break;
-    case "summary": content = renderSummary(); break;
-    case "history": content = renderHistory(); break;
-    case "skills":  content = renderSkills();  break;
-    default:        content = renderEmpty("Unknown screen");
+    case "home":    html = screenHome();    break;
+    case "setup":   html = screenSetup();   break;
+    case "drill":   html = screenDrill();   break;
+    case "done":    html = screenDone(activeSession()); break;
+    case "history": html = screenHistory(); break;
+    default:        html = screenEmpty("Unknown screen");
   }
-  document.getElementById("app").innerHTML = content + tabBar();
+  document.getElementById("app").innerHTML = html;
 }
 
-function timeAgo(ts) {
-  const diff = (Date.now() - ts) / 1000;
-  if (diff < 60) return "just now";
-  if (diff < 3600) return Math.floor(diff/60) + " min ago";
-  if (diff < 86400) return Math.floor(diff/3600) + " h ago";
-  if (diff < 604800) return Math.floor(diff/86400) + " d ago";
-  return new Date(ts).toLocaleDateString();
-}
-
-// ---------- 10. Event handling ----------
-// Single delegated listeners installed once at boot.
+/* ─── Event handling ─── */
 
 function onClick(e) {
   const target = e.target.closest("[data-action]");
-  if (!target) return;
+  if (!target || target.disabled) return;
   const action = target.dataset.action;
-  try { handleAction(action, target, e); } catch (err) { console.error(err); }
-}
-
-function onInput(e) {
-  const t = e.target;
-  if (t.id === "minSlider" && view.setup) {
-    view.setup.minutes = parseInt(t.value, 10);
-    const v = document.getElementById("minVal");
-    if (v) v.textContent = `${view.setup.minutes} min`;
-  } else if (t.id === "ratingNotes") {
-    view.rating.notes = t.value;
-  }
-}
-
-function handleAction(action, target, ev) {
   switch (action) {
-    case "navigate": {
-      navigate(target.dataset.screen);
+    case "go": {
+      // Reset setup when leaving the form, so values aren't sticky across runs.
+      if (target.dataset.screen === "home" && view.screen === "setup") view.setup = null;
+      go(target.dataset.screen);
+      break;
+    }
+    case "set-time": {
+      view.setup.time = parseInt(target.dataset.value, 10);
+      render();
       break;
     }
     case "set-facility": {
-      view.setup.facility = target.dataset.key;
+      view.setup.facility = target.dataset.value;
+      // Auto-deselect clubs that no longer fit (e.g. user picks "Putting Green").
+      const fac = FACILITIES_BY_ID[view.setup.facility];
+      for (const id of [...view.setup.clubs]) {
+        if (!clubFitsFacility(id, fac)) view.setup.clubs.delete(id);
+      }
+      // Auto-add a sensible default if nothing's selected.
+      if (view.setup.clubs.size === 0) {
+        if (view.setup.facility === "putt") view.setup.clubs.add("putter");
+        else if (view.setup.facility === "short") view.setup.clubs.add("wedges");
+      }
       render();
       break;
     }
     case "toggle-club": {
-      const k = target.dataset.key;
-      if (view.setup.clubs.has(k)) view.setup.clubs.delete(k);
-      else view.setup.clubs.add(k);
+      const id = target.dataset.value;
+      if (view.setup.clubs.has(id)) view.setup.clubs.delete(id);
+      else view.setup.clubs.add(id);
       render();
       break;
     }
     case "generate": {
       const clubs = [...view.setup.clubs];
       if (clubs.length === 0) return;
-      // persist prefs
-      state.preferences.lastFacility = view.setup.facility;
-      state.preferences.lastClubs = clubs;
-      state.preferences.lastTargetMinutes = view.setup.minutes;
-      const s = createSession({
+      // Persist prefs.
+      state.prefs = { time: view.setup.time, facility: view.setup.facility, clubs };
+      const sess = createSession({
         facility: view.setup.facility,
         clubs,
-        targetMinutes: view.setup.minutes,
+        targetMinutes: view.setup.time,
       });
-      view.setup = null; // reset
-      navigate("plan", { sessionId: s.id });
+      view.setup = null;
+      view.sessionId = sess.id;
+      view.drillIndex = 0;
+      go("drill");
       break;
     }
-    case "open-session": {
-      const s = getSession(target.dataset.id);
+    case "resume": {
+      const s = state.sessions.find(x => x.id === target.dataset.id);
       if (!s) return;
       view.sessionId = s.id;
-      navigate(s.completedAt ? "summary" : "plan");
+      const firstUnrated = s.drills.findIndex(d => d.rating === null);
+      view.drillIndex = firstUnrated === -1 ? 0 : firstUnrated;
+      go("drill");
       break;
     }
-    case "open-runner": {
-      const idx = parseInt(target.dataset.index, 10);
-      view.drillIndex = idx;
-      navigate("runner");
-      break;
-    }
-    case "toggle-timer": {
-      const planned = parseInt(target.dataset.planned, 10);
-      view.timer.planned = planned;
-      if (view.timer.running) pauseTimer();
-      else startTimer(planned);
-      break;
-    }
-    case "reset-timer": {
-      resetTimer();
-      break;
-    }
-    case "open-rating": {
-      const s = getSession(view.sessionId);
-      const dr = s.drills[view.drillIndex];
-      view.rating = { open: true, rating: dr.rating, notes: dr.notes };
-      pauseTimer();
-      render();
-      break;
-    }
-    case "close-rating": {
-      // Only close when the click is directly on the backdrop. Clicks on
-      // children of the sheet bubble up here too; ignore those.
-      if (ev && ev.target !== target) return;
-      view.rating = { open: false, rating: null, notes: "" };
-      render();
-      break;
-    }
-    case "select-rating": {
-      view.rating.rating = parseInt(target.dataset.rating, 10);
-      render();
-      break;
-    }
-    case "save-rating": {
-      const r = view.rating.rating;
-      if (r === null) return;
-      const s = getSession(view.sessionId);
+    case "rate": {
+      const r = parseInt(target.dataset.value, 10);
+      const s = activeSession();
+      if (!s) return;
       const dr = s.drills[view.drillIndex];
       dr.rating = r;
-      dr.notes = view.rating.notes;
       dr.completedAt = Date.now();
-      const drill = DRILLS_BY_ID[dr.drillID];
-      applyRating(r, drill);
-      // Auto-complete session if all rated.
-      if (s.drills.every(d => d.rating !== null) && !s.completedAt) {
-        s.completedAt = Date.now();
-      }
-      saveState();
-      view.rating = { open: false, rating: null, notes: "" };
-      // Advance if there's another drill
+      applyRating(r, DRILLS_BY_ID[dr.drillID]);
+      // Advance.
       if (view.drillIndex < s.drills.length - 1) {
         view.drillIndex += 1;
-        stopTimer();
-      }
-      render();
-      break;
-    }
-    case "next-drill": {
-      const s = getSession(view.sessionId);
-      if (view.drillIndex < s.drills.length - 1) {
-        view.drillIndex += 1;
-        stopTimer();
-        render();
-      }
-      break;
-    }
-    case "show-summary": {
-      navigate("summary");
-      break;
-    }
-    case "finalize-session": {
-      const s = getSession(view.sessionId);
-      if (!s) return;
-      s.completedAt = Date.now();
-      saveState();
-      navigate("summary");
-      break;
-    }
-    case "clear-history": {
-      if (confirm("Delete all sessions and reset the skill model? This cannot be undone.")) {
-        state = defaultState();
         saveState();
         render();
+        window.scrollTo({ top: 0, behavior: "instant" });
+      } else {
+        if (!s.completedAt) s.completedAt = Date.now();
+        saveState();
+        go("done");
       }
       break;
     }
-    case "seed-demo": {
-      seedDemoData();
-      render();
-      break;
-    }
   }
 }
-
-// ---------- 11. Demo data seeder ----------
-
-function seedDemoData() {
-  // Create 3 plausible past sessions with ratings biased toward weak short game
-  // and decent driver, so the next generation visibly tilts the focus areas.
-  state.sessions = [];
-  state.skills = {};
-
-  const facilities = ["fullFacility", "rangeShortGame", "fullFacility"];
-  const clubs = ["putter","wedges","shortIrons","midIrons","longIrons","driver"];
-  const days = [7, 4, 1];
-
-  for (let i = 0; i < 3; i++) {
-    const targetMinutes = [60, 45, 50][i];
-    const plan = generatePlan({ facility: facilities[i], clubs, targetMinutes });
-    const session = {
-      id: "s_demo_" + i,
-      createdAt: Date.now() - days[i] * 86400000,
-      completedAt: Date.now() - days[i] * 86400000 + targetMinutes * 60000,
-      facility: facilities[i],
-      clubs: [...clubs],
-      targetMinutes,
-      skillSnapshot: currentMeans(),
-      drills: plan.map((p, idx) => {
-        // Bias ratings — putting/chip = poor/below, irons = avg/good, driver = good
-        let rating = 3;
-        if (p.drill.skillAreas.some(s => s.startsWith("putting") || s.startsWith("chipping"))) {
-          rating = Math.random() < 0.6 ? 1 : 2;
-        } else if (p.drill.skillAreas.some(s => s.startsWith("driver"))) {
-          rating = Math.random() < 0.5 ? 4 : 5;
-        } else if (p.drill.skillAreas.some(s => s.startsWith("iron"))) {
-          rating = Math.random() < 0.5 ? 3 : 4;
-        }
-        applyRating(rating, p.drill);
-        return {
-          drillID: p.drill.id, order: idx, phase: p.phase,
-          plannedMinutes: p.minutes,
-          rating,
-          notes: "",
-          completedAt: Date.now() - days[i] * 86400000 + idx * 5 * 60000,
-        };
-      }),
-    };
-    state.sessions.unshift(session);
-  }
-  saveState();
-}
-
-// ---------- 12. Boot ----------
 
 document.addEventListener("click", onClick);
-document.addEventListener("input", onInput);
-
 render();
-
-// Refresh timer display when returning from background.
-document.addEventListener("visibilitychange", () => { if (!document.hidden) updateTimerUI(); });
-
 </script>
 </body>
 </html>
