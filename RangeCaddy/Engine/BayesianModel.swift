@@ -121,14 +121,35 @@ struct BayesianModel {
     // MARK: - Thompson sampling
 
     /// Sample θ ~ Beta(α, β) for a skill.
-    /// Used by the session generator to balance exploitation (focus on known
-    /// weaknesses) with exploration (revisit skills we're uncertain about).
-    /// Skills without persisted state use the neutral Beta(2, 2) prior.
+    /// Kept around for callers that want raw exploration; the session generator
+    /// uses `need(for:in:)` below for predictable user-facing behavior.
     static func sampleTheta(for skill: SkillArea, in context: ModelContext) -> Double {
         if let st = existingState(for: skill, in: context) {
             return BetaSampler.sample(alpha: st.alpha, beta: st.beta)
         }
         return BetaSampler.sample(alpha: neutralAlpha, beta: neutralBeta)
+    }
+
+    // MARK: - Need score
+
+    /// Per-skill "need" used by the session planner.
+    /// Deterministic-leaning: mostly `1 - mean` (exploit known weaknesses),
+    /// plus a small bonus from posterior stddev (probe uncertain skills) and
+    /// tiny noise for tie-breaking. This matches user intuition — when you
+    /// rate a drill poorly, you should see more of that area next session.
+    static func need(for skill: SkillArea, in context: ModelContext) -> Double {
+        let mean: Double
+        let sd: Double
+        if let st = existingState(for: skill, in: context) {
+            mean = st.mean
+            sd = st.stddev
+        } else {
+            // Neutral prior — Beta(2, 2): mean=0.5, sd ≈ 0.224
+            mean = 0.5
+            sd = 0.224
+        }
+        let noise = (Double.random(in: 0...1) - 0.5) * 0.04
+        return max(0.0, (1.0 - mean) + 0.2 * sd + noise)
     }
 }
 

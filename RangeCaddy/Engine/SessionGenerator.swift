@@ -69,11 +69,11 @@ struct SessionGenerator {
         // 2. Recent drill ids (last 2 sessions) → recency penalty set.
         let recentDrillIDs = recentlyUsedDrillIDs(within: 2)
 
-        // 3. Sample need per skill area via Thompson.
+        // 3. Compute need per skill area (UCB-style: exploit weakness with a
+        //    small exploration bonus from uncertainty).
         var need: [SkillArea: Double] = [:]
         for skill in SkillArea.allCases {
-            let theta = BayesianModel.sampleTheta(for: skill, in: context)
-            need[skill] = max(0.0, 1.0 - theta)
+            need[skill] = BayesianModel.need(for: skill, in: context)
         }
 
         // 4. Zero out need for skills that no candidate drill can train.
