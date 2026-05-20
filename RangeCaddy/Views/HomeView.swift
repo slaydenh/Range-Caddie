@@ -7,162 +7,133 @@ struct HomeView: View {
     @Query(sort: \PracticeSession.createdAt, order: .reverse) private var sessions: [PracticeSession]
 
     @State private var showSetup = false
+    @State private var resumeSession: PracticeSession?
+
+    private var unfinished: PracticeSession? {
+        sessions.first(where: { !$0.isCompleted })
+    }
+    private var hasCompletedSessions: Bool {
+        sessions.contains(where: { $0.isCompleted })
+    }
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    header
+        VStack(spacing: 0) {
+            Spacer()
 
-                    StartCard {
-                        showSetup = true
-                    }
-
-                    if let recent = sessions.first {
-                        recentSessionCard(recent)
-                    }
-
-                    insightsCard
-                }
-                .padding(.horizontal)
-                .padding(.bottom, 24)
-            }
-            .background(Color(.systemGroupedBackground).ignoresSafeArea())
-            .navigationTitle("Range Caddy")
-            .sheet(isPresented: $showSetup) {
-                SessionSetupView()
-            }
-        }
-    }
-
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("Welcome back")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            Text("Time to sharpen up.")
-                .font(.title2.bold())
-        }
-        .padding(.top)
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private func recentSessionCard(_ s: PracticeSession) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Label("Last Session", systemImage: "clock")
-                    .font(.headline)
-                Spacer()
-                Text(s.createdAt, style: .relative)
-                    .foregroundStyle(.secondary)
-                    .font(.caption)
-            }
-            HStack(spacing: 16) {
-                StatPill(value: "\(s.targetMinutes)", unit: "min")
-                StatPill(value: "\(s.drills.count)", unit: "drills")
-                StatPill(value: "\(s.completedDrillCount)/\(s.drills.count)", unit: "done")
-            }
-            NavigationLink {
-                if s.isCompleted {
-                    SessionSummaryView(session: s)
-                } else {
-                    SessionPlanView(session: s)
-                }
-            } label: {
-                Text(s.isCompleted ? "View summary" : "Resume session")
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 10)
-                    .background(Color.green.opacity(0.15))
-                    .foregroundStyle(.green)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-            }
-        }
-        .padding()
-        .background(Color(.secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-    }
-
-    private var insightsCard: some View {
-        let means = BayesianModel.currentMeans(in: context)
-        let weakest = means
-            .filter { $0.value < 0.5 }
-            .sorted { $0.value < $1.value }
-            .prefix(3)
-        return VStack(alignment: .leading, spacing: 10) {
-            Label("What we're working on", systemImage: "scope")
-                .font(.headline)
-            if weakest.isEmpty {
-                Text("Once you log a few sessions, your top focus areas show up here.")
+            VStack(spacing: 8) {
+                Text("Range Caddy")
+                    .font(.system(size: 40, weight: .heavy))
+                    .tracking(-0.5)
+                Text("Tell me what you've got.\nI'll build the session.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-            } else {
-                ForEach(Array(weakest), id: \.key) { (skill, mean) in
+                    .multilineTextAlignment(.center)
+            }
+            .padding(.bottom, 32)
+
+            Button {
+                showSetup = true
+            } label: {
+                Text("Start Practicing")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 18)
+                    .background(Color.green)
+                    .foregroundStyle(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                    .shadow(color: Color.green.opacity(0.25), radius: 14, y: 4)
+            }
+            .buttonStyle(.plain)
+
+            if let unfinished {
+                Button {
+                    resumeSession = unfinished
+                } label: {
                     HStack {
-                        Text(skill.displayName)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Continue last session")
+                                .font(.subheadline)
+                                .foregroundStyle(.primary)
+                            Text("\(unfinished.targetMinutes) min · \(unfinished.drills.count) drills")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                         Spacer()
-                        Text(String(format: "%.0f%%", mean * 100))
+                        Image(systemName: "chevron.right")
                             .foregroundStyle(.secondary)
                     }
-                    .font(.subheadline)
+                    .padding(.vertical, 14)
+                    .padding(.horizontal, 16)
+                    .background(Color(.secondarySystemGroupedBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+                .buttonStyle(.plain)
+                .padding(.top, 16)
+            }
+
+            Spacer()
+
+            if hasCompletedSessions {
+                NavigationLink {
+                    HistoryView()
+                } label: {
+                    Text("Past sessions")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .padding()
                 }
             }
         }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .padding(.horizontal, 24)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.systemBackground).ignoresSafeArea())
+        .navigationBarHidden(true)
+        .sheet(isPresented: $showSetup) {
+            SessionSetupView()
+        }
+        .fullScreenCover(item: $resumeSession) { session in
+            ResumeRunnerView(session: session) {
+                resumeSession = nil
+            }
+        }
     }
 }
 
-// MARK: - Sub-components
+/// Wraps DrillRunnerView + DoneView for the "resume" path from Home.
+/// Presented as a full-screen cover so closing returns to Home.
+private struct ResumeRunnerView: View {
 
-private struct StartCard: View {
-    var onTap: () -> Void
+    @Bindable var session: PracticeSession
+    let onClose: () -> Void
+
+    @State private var isDone: Bool
+
+    init(session: PracticeSession, onClose: @escaping () -> Void) {
+        self.session = session
+        self.onClose = onClose
+        self._isDone = State(initialValue: session.isCompleted)
+    }
+
+    private var startIndex: Int {
+        session.orderedDrills.firstIndex(where: { $0.rating == nil }) ?? 0
+    }
 
     var body: some View {
-        Button(action: onTap) {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.title)
-                    Text("New Session")
-                        .font(.title2.bold())
-                }
-                Text("Tell us your facility, time, and clubs — we'll build the session.")
-                    .font(.subheadline)
-                    .foregroundStyle(.white.opacity(0.85))
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding()
-            .background(
-                LinearGradient(colors: [.green, .green.opacity(0.7)],
-                               startPoint: .topLeading,
-                               endPoint: .bottomTrailing)
+        if isDone {
+            DoneView(session: session, onClose: onClose)
+        } else {
+            DrillRunnerView(
+                session: session,
+                startIndex: startIndex,
+                onQuit: onClose,
+                onComplete: { isDone = true }
             )
-            .foregroundStyle(.white)
-            .clipShape(RoundedRectangle(cornerRadius: 16))
         }
-        .buttonStyle(.plain)
-    }
-}
-
-private struct StatPill: View {
-    let value: String
-    let unit: String
-    var body: some View {
-        VStack(spacing: 2) {
-            Text(value).font(.title3.bold())
-            Text(unit).font(.caption).foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 8)
-        .background(Color(.tertiarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 }
 
 #Preview {
-    HomeView()
+    NavigationStack { HomeView() }
         .modelContainer(for: [
             PracticeSession.self,
             DrillRecord.self,

@@ -1,33 +1,22 @@
 import Foundation
 import SwiftData
 
-/// Singleton-ish per-user defaults.
-/// Holds the most recent setup choices so the session form can preload them.
+/// Singleton-ish per-user defaults so the setup form preloads with the last picks.
 @Model
 final class UserPreferences {
 
     @Attribute(.unique) var id: String  // always "default"
 
-    /// Display name shown on the home screen.
-    var displayName: String
-
-    /// Last-used facility.
     var lastFacilityRaw: String
-
-    /// Last-used club selection.
-    var lastClubsRaw: [String]
-
-    /// Last-used target duration in minutes.
+    var lastClubBucketsRaw: [String]
     var lastTargetMinutes: Int
 
-    init(displayName: String = "Golfer",
-         lastFacility: Facility = .fullFacility,
-         lastClubs: Set<ClubCategory> = [.putter, .wedges, .shortIrons, .midIrons, .driver],
+    init(lastFacility: Facility = .fullFacility,
+         lastClubBuckets: Set<ClubBucket> = [.putter, .wedges, .irons, .driver],
          lastTargetMinutes: Int = 45) {
         self.id = "default"
-        self.displayName = displayName
         self.lastFacilityRaw = lastFacility.rawValue
-        self.lastClubsRaw = lastClubs.map(\.rawValue).sorted()
+        self.lastClubBucketsRaw = lastClubBuckets.map(\.rawValue).sorted()
         self.lastTargetMinutes = lastTargetMinutes
     }
 
@@ -36,8 +25,8 @@ final class UserPreferences {
         set { lastFacilityRaw = newValue.rawValue }
     }
 
-    var lastClubs: Set<ClubCategory> {
-        get { Set(lastClubsRaw.compactMap { ClubCategory(rawValue: $0) }) }
-        set { lastClubsRaw = newValue.map(\.rawValue).sorted() }
+    var lastClubBuckets: Set<ClubBucket> {
+        get { Set(lastClubBucketsRaw.compactMap { ClubBucket(rawValue: $0) }) }
+        set { lastClubBucketsRaw = newValue.map(\.rawValue).sorted() }
     }
 }

@@ -1,183 +1,258 @@
 import SwiftUI
 import SwiftData
 
+/// Sheet content that owns the entire new-session flow:
+///   Setup form → Drill runner → Done screen
+/// No NavigationStack inside, so closing from any phase dismisses the sheet.
 struct SessionSetupView: View {
 
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
+
+    @State private var flowSession: PracticeSession?
+    @State private var phase: Phase = .form
+
+    private enum Phase {
+        case form
+        case running
+        case done
+    }
+
+    var body: some View {
+        Group {
+            switch phase {
+            case .form:
+                SetupFormView(
+                    onCancel: { dismiss() },
+                    onGenerate: { session in
+                        flowSession = session
+                        phase = .running
+                    }
+                )
+            case .running:
+                if let s = flowSession {
+                    DrillRunnerView(
+                        session: s,
+                        startIndex: 0,
+                        onQuit: { dismiss() },
+                        onComplete: { phase = .done }
+                    )
+                } else {
+                    fallback
+                }
+            case .done:
+                if let s = flowSession {
+                    DoneView(session: s) { dismiss() }
+                } else {
+                    fallback
+                }
+            }
+        }
+    }
+
+    private var fallback: some View {
+        VStack {
+            Text("Something went wrong.")
+                .foregroundStyle(.secondary)
+            Button("Close") { dismiss() }
+                .padding()
+        }
+    }
+}
+
+// MARK: - Setup form
+
+private struct SetupFormView: View {
+
+    var onCancel: () -> Void
+    var onGenerate: (PracticeSession) -> Void
+
+    @Environment(\.modelContext) private var context
     @Query private var preferencesList: [UserPreferences]
 
+    @State private var minutes: Int = 45
     @State private var facility: Facility = .fullFacility
-    @State private var clubs: Set<ClubCategory> = [.putter, .wedges, .shortIrons, .midIrons, .driver]
-    @State private var targetMinutes: Double = 45
+    @State private var clubs: Set<ClubBucket> = [.putter, .wedges, .irons, .driver]
 
-    @State private var generatedSession: PracticeSession?
-
+    private let timeOptions = [30, 45, 60]
+    private let twoCols = [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)]
     private var prefs: UserPreferences? { preferencesList.first }
 
     var body: some View {
-        NavigationStack {
-            Form {
-                Section("Time") {
-                    VStack(alignment: .leading) {
-                        HStack {
-                            Text("\(Int(targetMinutes)) minutes")
-                                .font(.title2.bold())
-                            Spacer()
-                            Text(durationLabel)
-                                .foregroundStyle(.secondary)
+        VStack(spacing: 0) {
+            HStack {
+                Button("Cancel", action: onCancel)
+                    .foregroundStyle(Color.green)
+                Spacer()
+                Text("New Session")
+                    .font(.headline)
+                Spacer()
+                // Symmetry placeholder
+                Text("Cancel").opacity(0)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 28) {
+
+                    section("How long?") {
+                        HStack(spacing: 10) {
+                            ForEach(timeOptions, id: \.self) { t in
+                                TileButton(isOn: minutes == t) {
+                                    minutes = t
+                                } label: {
+                                    VStack(spacing: 2) {
+                                        Text("\(t)")
+                                            .font(.system(size: 22, weight: .heavy))
+                                        Text("minutes")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                }
+                            }
                         }
-                        Slider(value: $targetMinutes, in: 30...60, step: 5)
-                            .tint(.green)
                     }
-                }
 
-                Section("Facility") {
-                    Picker("Where are you practicing?", selection: $facility) {
-                        ForEach(Facility.allCases) { f in
-                            Label(f.displayName, systemImage: f.symbolName).tag(f)
+                    section("Where are you?") {
+                        LazyVGrid(columns: twoCols, spacing: 10) {
+                            ForEach(Facility.allCases) { f in
+                                TileButton(isOn: facility == f) {
+                                    facility = f
+                                    pruneClubsForFacility()
+                                } label: {
+                                    VStack(spacing: 4) {
+                                        Text(f.displayName)
+                                            .font(.subheadline.bold())
+                                        Text(f.subtitle)
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                            .multilineTextAlignment(.center)
+                                    }
+                                }
+                            }
                         }
                     }
-                    .pickerStyle(.navigationLink)
 
-                    // Inline summary of what's available.
-                    HStack(spacing: 12) {
-                        FacilityIndicator(label: "Range", on: facility.hasFullSwingArea)
-                        FacilityIndicator(label: "Short game", on: facility.hasShortGameArea)
-                        FacilityIndicator(label: "Putting", on: facility.hasPuttingGreen)
+                    section("What clubs?") {
+                        LazyVGrid(columns: twoCols, spacing: 10) {
+                            ForEach(ClubBucket.allCases) { b in
+                                let on = clubs.contains(b)
+                                let fits = b.fits(at: facility)
+                                TileButton(isOn: on && fits, disabled: !fits) {
+                                    if on { clubs.remove(b) } else { clubs.insert(b) }
+                                } label: {
+                                    VStack(spacing: 4) {
+                                        Text(b.displayName)
+                                            .font(.subheadline.bold())
+                                        Text(!fits ? "not at this facility"
+                                             : on ? "✓ selected"
+                                             : "tap to add")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                }
+                            }
+                        }
                     }
-                    .padding(.top, 4)
-                }
 
-                Section {
-                    ClubMultiSelect(selection: $clubs)
-                } header: {
-                    Text("Clubs you have / want to use")
-                } footer: {
-                    Text("Drills are filtered to only use clubs you've selected.")
-                }
-
-                Section {
                     Button(action: generate) {
-                        HStack {
-                            Spacer()
-                            Text("Generate Session")
-                                .font(.headline)
-                            Spacer()
-                        }
-                        .padding(.vertical, 4)
+                        Text("Build my session")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 18)
+                            .background(clubs.isEmpty ? Color.gray.opacity(0.4) : Color.green)
+                            .foregroundStyle(.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 14))
                     }
                     .disabled(clubs.isEmpty)
+                    .buttonStyle(.plain)
                 }
+                .padding(20)
             }
-            .navigationTitle("New Session")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-            }
-            .onAppear(perform: loadPreferences)
-            .navigationDestination(item: $generatedSession) { s in
-                SessionPlanView(session: s)
-            }
+        }
+        .background(Color(.systemBackground).ignoresSafeArea())
+        .onAppear(perform: loadPrefs)
+    }
+
+    // MARK: - Helpers
+
+    @ViewBuilder
+    private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title.uppercased())
+                .font(.caption.bold())
+                .tracking(0.6)
+                .foregroundStyle(.secondary)
+            content()
         }
     }
 
-    private var durationLabel: String {
-        switch Int(targetMinutes) {
-        case ..<35:  return "Quick"
-        case 35...45: return "Standard"
-        default:     return "Deep work"
-        }
-    }
-
-    private func loadPreferences() {
+    private func loadPrefs() {
         if let p = prefs {
             facility = p.lastFacility
-            clubs = p.lastClubs
-            targetMinutes = Double(p.lastTargetMinutes)
+            clubs = p.lastClubBuckets
+            minutes = p.lastTargetMinutes
+            pruneClubsForFacility()
+        }
+    }
+
+    private func pruneClubsForFacility() {
+        clubs = clubs.filter { $0.fits(at: facility) }
+        if clubs.isEmpty {
+            switch facility {
+            case .puttingGreenOnly: clubs = [.putter]
+            case .shortGameOnly:    clubs = [.wedges]
+            case .rangeOnly:        clubs = [.irons]
+            case .fullFacility:     clubs = [.putter, .wedges, .irons, .driver]
+            }
         }
     }
 
     private func generate() {
         guard !clubs.isEmpty else { return }
-
-        // Persist prefs.
         let p = prefs ?? UserPreferences()
         if prefs == nil { context.insert(p) }
         p.lastFacility = facility
-        p.lastClubs = clubs
-        p.lastTargetMinutes = Int(targetMinutes)
+        p.lastClubBuckets = clubs
+        p.lastTargetMinutes = minutes
 
         let gen = SessionGenerator(
             facility: facility,
-            selectedClubs: clubs,
-            targetMinutes: Int(targetMinutes),
+            selectedBuckets: clubs,
+            targetMinutes: minutes,
             context: context
         )
         let session = gen.generate()
-        do { try context.save() } catch {
-            // Non-fatal — show the session anyway, but log.
-            print("Save failed: \(error)")
-        }
-        generatedSession = session
+        try? context.save()
+        onGenerate(session)
     }
 }
 
-// MARK: - Helpers
+// MARK: - Tile button
 
-private struct FacilityIndicator: View {
-    let label: String
-    let on: Bool
+private struct TileButton<Label: View>: View {
+    let isOn: Bool
+    var disabled: Bool = false
+    let action: () -> Void
+    @ViewBuilder let label: () -> Label
 
     var body: some View {
-        HStack(spacing: 4) {
-            Image(systemName: on ? "checkmark.circle.fill" : "xmark.circle")
-                .foregroundStyle(on ? Color.green : .secondary)
-            Text(label).font(.caption)
+        Button(action: { if !disabled { action() } }) {
+            label()
+                .frame(maxWidth: .infinity, minHeight: 76)
+                .padding(.vertical, 14)
+                .padding(.horizontal, 8)
+                .background(isOn ? Color.green.opacity(0.12) : Color(.secondarySystemGroupedBackground))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(isOn ? Color.green : Color.clear, lineWidth: 2)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .foregroundStyle(isOn ? Color.green : Color.primary)
+                .opacity(disabled ? 0.4 : 1.0)
         }
+        .buttonStyle(.plain)
+        .disabled(disabled)
     }
-}
-
-private struct ClubMultiSelect: View {
-    @Binding var selection: Set<ClubCategory>
-
-    var body: some View {
-        let columns = [GridItem(.adaptive(minimum: 140), spacing: 8)]
-        LazyVGrid(columns: columns, spacing: 8) {
-            ForEach(ClubCategory.allCases) { c in
-                let on = selection.contains(c)
-                Button {
-                    if on { selection.remove(c) } else { selection.insert(c) }
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: c.symbolName)
-                        Text(c.displayName).font(.subheadline)
-                        Spacer(minLength: 0)
-                        if on {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundStyle(.green)
-                        }
-                    }
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 10)
-                    .background(on ? Color.green.opacity(0.15) : Color(.tertiarySystemGroupedBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                    .foregroundStyle(on ? Color.green : Color.primary)
-                }
-                .buttonStyle(.plain)
-            }
-        }
-    }
-}
-
-#Preview {
-    SessionSetupView()
-        .modelContainer(for: [
-            PracticeSession.self,
-            DrillRecord.self,
-            SkillState.self,
-            UserPreferences.self,
-        ], inMemory: true)
 }

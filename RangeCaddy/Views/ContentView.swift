@@ -2,23 +2,9 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-
     var body: some View {
-        TabView {
+        NavigationStack {
             HomeView()
-                .tabItem {
-                    Label("Practice", systemImage: "figure.golf")
-                }
-
-            HistoryView()
-                .tabItem {
-                    Label("History", systemImage: "clock.arrow.circlepath")
-                }
-
-            SkillDashboardView()
-                .tabItem {
-                    Label("Skills", systemImage: "chart.bar.fill")
-                }
         }
         .tint(.green)
     }

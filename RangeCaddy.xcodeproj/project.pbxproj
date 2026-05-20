@@ -20,13 +20,9 @@
 		A110000B000000000000001A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B110000B000000000000001A /* ContentView.swift */; };
 		A110000C000000000000001A /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B110000C000000000000001A /* HomeView.swift */; };
 		A110000D000000000000001A /* SessionSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B110000D000000000000001A /* SessionSetupView.swift */; };
-		A110000E000000000000001A /* SessionPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B110000E000000000000001A /* SessionPlanView.swift */; };
 		A110000F000000000000001A /* DrillRunnerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B110000F000000000000001A /* DrillRunnerView.swift */; };
-		A1100010000000000000001A /* DrillRatingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1100010000000000000001A /* DrillRatingView.swift */; };
-		A1100011000000000000001A /* SessionSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1100011000000000000001A /* SessionSummaryView.swift */; };
 		A1100012000000000000001A /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1100012000000000000001A /* HistoryView.swift */; };
-		A1100013000000000000001A /* SkillDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1100013000000000000001A /* SkillDashboardView.swift */; };
-		A1100014000000000000001A /* SkillBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1100014000000000000001A /* SkillBar.swift */; };
+		A1100015000000000000001A /* DoneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1100015000000000000001A /* DoneView.swift */; };
 		A2000001000000000000001A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000001A /* Assets.xcassets */; };
 		A2000002000000000000001A /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B2000002000000000000001A /* Preview Assets.xcassets */; };
 /* End PBXBuildFile section */
@@ -45,13 +41,9 @@
 		B110000B000000000000001A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		B110000C000000000000001A /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		B110000D000000000000001A /* SessionSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionSetupView.swift; sourceTree = "<group>"; };
-		B110000E000000000000001A /* SessionPlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionPlanView.swift; sourceTree = "<group>"; };
 		B110000F000000000000001A /* DrillRunnerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrillRunnerView.swift; sourceTree = "<group>"; };
-		B1100010000000000000001A /* DrillRatingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrillRatingView.swift; sourceTree = "<group>"; };
-		B1100011000000000000001A /* SessionSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionSummaryView.swift; sourceTree = "<group>"; };
 		B1100012000000000000001A /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
-		B1100013000000000000001A /* SkillDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillDashboardView.swift; sourceTree = "<group>"; };
-		B1100014000000000000001A /* SkillBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillBar.swift; sourceTree = "<group>"; };
+		B1100015000000000000001A /* DoneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoneView.swift; sourceTree = "<group>"; };
 		B2000001000000000000001A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B2000002000000000000001A /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		C0000001000000000000001A /* RangeCaddy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RangeCaddy.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -134,13 +126,9 @@
 				B110000B000000000000001A /* ContentView.swift */,
 				B110000C000000000000001A /* HomeView.swift */,
 				B110000D000000000000001A /* SessionSetupView.swift */,
-				B110000E000000000000001A /* SessionPlanView.swift */,
 				B110000F000000000000001A /* DrillRunnerView.swift */,
-				B1100010000000000000001A /* DrillRatingView.swift */,
-				B1100011000000000000001A /* SessionSummaryView.swift */,
+				B1100015000000000000001A /* DoneView.swift */,
 				B1100012000000000000001A /* HistoryView.swift */,
-				B1100013000000000000001A /* SkillDashboardView.swift */,
-				B9000007000000000000001A /* Components */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -151,14 +139,6 @@
 				B2000002000000000000001A /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
-			sourceTree = "<group>";
-		};
-		B9000007000000000000001A /* Components */ = {
-			isa = PBXGroup;
-			children = (
-				B1100014000000000000001A /* SkillBar.swift */,
-			);
-			path = Components;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -244,13 +224,9 @@
 				A110000B000000000000001A /* ContentView.swift in Sources */,
 				A110000C000000000000001A /* HomeView.swift in Sources */,
 				A110000D000000000000001A /* SessionSetupView.swift in Sources */,
-				A110000E000000000000001A /* SessionPlanView.swift in Sources */,
 				A110000F000000000000001A /* DrillRunnerView.swift in Sources */,
-				A1100010000000000000001A /* DrillRatingView.swift in Sources */,
-				A1100011000000000000001A /* SessionSummaryView.swift in Sources */,
+				A1100015000000000000001A /* DoneView.swift in Sources */,
 				A1100012000000000000001A /* HistoryView.swift in Sources */,
-				A1100013000000000000001A /* SkillDashboardView.swift in Sources */,
-				A1100014000000000000001A /* SkillBar.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

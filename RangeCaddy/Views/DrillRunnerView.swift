@@ -1,26 +1,35 @@
 import SwiftUI
 import SwiftData
 
-/// Walks the user through one drill at a time: instructions, optional timer,
-/// then rating, then advances to the next drill.
+/// Walks the user through one drill at a time. Steps, pass criteria, and a
+/// 3-button rating at the bottom. No timer controls — just shows the
+/// suggested duration. Tapping a rating immediately advances to the next
+/// drill. When the last drill is rated, calls `onComplete`.
 struct DrillRunnerView: View {
 
     @Bindable var session: PracticeSession
     let startIndex: Int
 
+    /// Called when the user quits mid-session (top-left button).
+    let onQuit: () -> Void
+
+    /// Called after the user rates the final drill of the session.
+    let onComplete: () -> Void
+
     @Environment(\.modelContext) private var context
-    @Environment(\.dismiss) private var dismiss
 
     @State private var index: Int
-    @State private var showRating: Bool = false
-    @State private var elapsed: TimeInterval = 0
-    @State private var running: Bool = false
-    @State private var timerToken = UUID()
 
-    init(session: PracticeSession, startIndex: Int) {
+    init(session: PracticeSession,
+         startIndex: Int,
+         onQuit: @escaping () -> Void,
+         onComplete: @escaping () -> Void) {
         self.session = session
         self.startIndex = startIndex
-        self._index = State(initialValue: max(0, min(startIndex, session.drills.count - 1)))
+        self.onQuit = onQuit
+        self.onComplete = onComplete
+        let safeStart = max(0, min(startIndex, max(session.drills.count - 1, 0)))
+        self._index = State(initialValue: safeStart)
     }
 
     private var ordered: [DrillRecord] { session.orderedDrills }
@@ -31,243 +40,161 @@ struct DrillRunnerView: View {
     private var currentDrill: Drill? { currentRecord?.drill }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                if let record = currentRecord, let drill = currentDrill {
-                    progressBar
-                    header(record: record, drill: drill)
-                    timerCard(planned: record.plannedMinutes)
-                    instructionsCard(drill: drill)
-                    successCard(drill: drill)
-                    actions(record: record)
-                } else {
-                    finishedView
+        VStack(spacing: 0) {
+            topBar
+            ScrollView {
+                VStack(alignment: .leading, spacing: 22) {
+                    if let record = currentRecord, let drill = currentDrill {
+                        phaseTag(record.phase)
+                        Text(drill.name)
+                            .font(.system(size: 30, weight: .heavy))
+                        Text(drill.summary)
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                        Label("\(record.plannedMinutes) min suggested", systemImage: "clock")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        stepsList(drill.instructions)
+                        passCard(drill.successCriteria)
+                        ratingRow()
+                    } else {
+                        Text("No drills in this session.")
+                            .foregroundStyle(.secondary)
+                    }
                 }
+                .padding(20)
             }
-            .padding()
+            .id(index)  // recreate scroll view on drill change to reset position
         }
-        .background(Color(.systemGroupedBackground).ignoresSafeArea())
-        .navigationTitle(currentDrill?.name ?? "Done")
-        .navigationBarTitleDisplayMode(.inline)
-        .sheet(isPresented: $showRating) {
-            if let record = currentRecord, let drill = currentDrill {
-                DrillRatingView(record: record, drill: drill) {
-                    advance()
-                }
-                .presentationDetents([.medium, .large])
-            }
-        }
-        .onAppear { resetTimer() }
-        .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { _ in
-            if running { elapsed += 1 }
-        }
-        .id(timerToken)
+        .background(Color(.systemBackground).ignoresSafeArea())
     }
 
     // MARK: - Sub-views
 
-    private var progressBar: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text("Drill \(index + 1) of \(ordered.count)")
-                    .font(.caption).foregroundStyle(.secondary)
-                Spacer()
-                if let r = currentRecord {
-                    Label(r.phase.displayName, systemImage: r.phase.symbolName)
+    private var topBar: some View {
+        HStack {
+            Button(action: onQuit) {
+                Text("‹ Quit")
+                    .font(.body)
+                    .foregroundStyle(Color.green)
+            }
+            .buttonStyle(.plain)
+            Spacer()
+            Text("\(index + 1) of \(ordered.count)")
+                .font(.subheadline.bold())
+                .foregroundStyle(.secondary)
+            Spacer()
+            // Spacer to balance the layout
+            Text("‹ Quit").font(.body).opacity(0)
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 12)
+        .padding(.bottom, 8)
+    }
+
+    private func phaseTag(_ phase: SessionPhase) -> some View {
+        Text(phase.displayName.uppercased())
+            .font(.caption.bold())
+            .tracking(0.8)
+            .foregroundStyle(Color.green)
+    }
+
+    private func stepsList(_ steps: [String]) -> some View {
+        VStack(spacing: 8) {
+            ForEach(Array(steps.enumerated()), id: \.offset) { (idx, step) in
+                HStack(alignment: .top, spacing: 12) {
+                    Text("\(idx + 1)")
                         .font(.caption.bold())
-                        .foregroundStyle(.green)
-                }
-            }
-            ProgressView(value: Double(index), total: Double(max(ordered.count, 1)))
-                .tint(.green)
-        }
-    }
-
-    private func header(record: DrillRecord, drill: Drill) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(drill.name).font(.title.bold())
-            Text(drill.summary).foregroundStyle(.secondary)
-            HStack(spacing: 8) {
-                ForEach(drill.clubs, id: \.self) { c in
-                    Label(c.displayName, systemImage: c.symbolName)
-                        .font(.caption)
-                        .padding(.vertical, 4).padding(.horizontal, 8)
-                        .background(Color(.tertiarySystemGroupedBackground))
-                        .clipShape(Capsule())
-                }
-            }
-            HStack(spacing: 8) {
-                ForEach(drill.skillAreas, id: \.self) { s in
-                    Text(s.displayName)
-                        .font(.caption2)
-                        .padding(.vertical, 3).padding(.horizontal, 7)
+                        .foregroundStyle(Color.green)
+                        .frame(width: 24, height: 24)
                         .background(Color.green.opacity(0.12))
-                        .foregroundStyle(.green)
-                        .clipShape(Capsule())
-                }
-            }
-        }
-    }
-
-    private func timerCard(planned: Int) -> some View {
-        VStack(spacing: 12) {
-            HStack {
-                Label("Timer", systemImage: "timer")
-                    .font(.headline)
-                Spacer()
-                Text("Planned \(planned) min")
-                    .foregroundStyle(.secondary)
-                    .font(.subheadline)
-            }
-            Text(formatElapsed(elapsed))
-                .font(.system(size: 48, weight: .bold, design: .rounded))
-                .monospacedDigit()
-                .foregroundStyle(elapsed > Double(planned) * 60 ? .orange : .primary)
-            HStack(spacing: 12) {
-                Button {
-                    running.toggle()
-                } label: {
-                    Label(running ? "Pause" : (elapsed > 0 ? "Resume" : "Start"),
-                          systemImage: running ? "pause.fill" : "play.fill")
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
-                        .background(Color.green.opacity(0.15))
-                        .foregroundStyle(.green)
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                }
-                Button(role: .destructive) {
-                    elapsed = 0
-                    running = false
-                } label: {
-                    Label("Reset", systemImage: "arrow.counterclockwise")
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
-                        .background(Color(.tertiarySystemGroupedBackground))
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                }
-                .tint(.primary)
-            }
-        }
-        .padding()
-        .background(Color(.secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-    }
-
-    private func instructionsCard(drill: Drill) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Label("How to do it", systemImage: "list.number")
-                .font(.headline)
-            ForEach(Array(drill.instructions.enumerated()), id: \.offset) { (idx, line) in
-                HStack(alignment: .top, spacing: 10) {
-                    Text("\(idx + 1).")
-                        .font(.subheadline.bold())
-                        .foregroundStyle(.green)
-                    Text(line).font(.subheadline)
+                        .clipShape(Circle())
+                    Text(step).font(.body)
                     Spacer(minLength: 0)
                 }
+                .padding(12)
+                .background(Color(.secondarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
             }
-            Divider().padding(.vertical, 2)
-            HStack {
-                Image(systemName: "number")
-                Text("Reps: \(drill.reps)")
-            }
-            .font(.caption)
-            .foregroundStyle(.secondary)
         }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
-    private func successCard(drill: Drill) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Label("Pass when…", systemImage: "checkmark.seal")
-                .font(.headline)
-            Text(drill.successCriteria)
-                .font(.subheadline)
+    private func passCard(_ criteria: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("PASS WHEN")
+                .font(.caption.bold())
+                .tracking(0.8)
+                .foregroundStyle(Color.green)
+            Text(criteria).font(.body)
         }
-        .padding()
+        .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.green.opacity(0.08))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .background(Color.green.opacity(0.10))
+        .overlay(
+            Rectangle()
+                .fill(Color.green)
+                .frame(width: 3),
+            alignment: .leading
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 
-    private func actions(record: DrillRecord) -> some View {
-        VStack(spacing: 10) {
-            Button {
-                running = false
-                showRating = true
-            } label: {
-                Text(record.rating == nil ? "I'm done — rate it" : "Update rating")
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(Color.green)
-                    .foregroundStyle(.white)
-                    .font(.headline)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-            }
-            if record.rating != nil, index < ordered.count - 1 {
-                Button {
-                    advance()
-                } label: {
-                    Text("Next drill")
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(Color(.tertiarySystemGroupedBackground))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+    private func ratingRow() -> some View {
+        VStack(spacing: 12) {
+            Text("HOW'D THAT GO?")
+                .font(.caption.bold())
+                .tracking(0.8)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity)
+            HStack(spacing: 10) {
+                ForEach(DrillRating.allCases) { r in
+                    Button { rate(r) } label: {
+                        VStack(spacing: 6) {
+                            Text(r.emoji).font(.system(size: 28))
+                            Text(r.displayName).font(.subheadline.bold())
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 76)
+                        .padding(.vertical, 14)
+                        .background(Color(.secondarySystemGroupedBackground))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 14)
+                                .stroke(borderColor(for: r), lineWidth: 2)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                        .foregroundStyle(Color.primary)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
         }
+        .padding(.top, 8)
     }
 
-    private var finishedView: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "checkmark.seal.fill")
-                .font(.system(size: 64))
-                .foregroundStyle(.green)
-            Text("Session complete").font(.title.bold())
-            NavigationLink {
-                SessionSummaryView(session: session)
-            } label: {
-                Text("View summary")
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(Color.green)
-                    .foregroundStyle(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-            }
+    private func borderColor(for r: DrillRating) -> Color {
+        switch r {
+        case .struggled: return Color.red.opacity(0.4)
+        case .solid:     return Color.orange.opacity(0.4)
+        case .dialed:    return Color.green.opacity(0.4)
         }
-        .padding(.top, 60)
     }
 
-    // MARK: - Logic
+    // MARK: - Actions
 
-    private func formatElapsed(_ t: TimeInterval) -> String {
-        let total = Int(t)
-        let m = total / 60
-        let s = total % 60
-        return String(format: "%02d:%02d", m, s)
-    }
+    private func rate(_ rating: DrillRating) {
+        guard let record = currentRecord, let drill = currentDrill else { return }
+        record.ratingRaw = rating.rawValue
+        record.completedAt = Date()
+        BayesianModel.applyRating(rating, for: drill, in: context)
 
-    private func resetTimer() {
-        elapsed = 0
-        running = false
-        timerToken = UUID()
-    }
-
-    private func advance() {
         if index < ordered.count - 1 {
             index += 1
-            resetTimer()
+            try? context.save()
         } else {
-            // Finished. Mark session complete if all drills rated.
-            if session.completedDrillCount == session.drills.count {
+            if !session.isCompleted {
                 session.completedAt = Date()
-                try? context.save()
             }
-            // Stay on the finished view — user can navigate to summary.
-            index = ordered.count
+            try? context.save()
+            onComplete()
         }
     }
 }

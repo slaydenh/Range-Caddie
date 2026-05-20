@@ -1,7 +1,45 @@
 import Foundation
 
-// MARK: - Club Categories
-// Coarse buckets the user selects when setting up a session.
+// MARK: - Facility (user-facing, 4 options)
+
+enum Facility: String, Codable, CaseIterable, Identifiable, Hashable {
+    case fullFacility       // range + short game + putting
+    case rangeOnly
+    case shortGameOnly
+    case puttingGreenOnly
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .fullFacility:     return "Full Practice"
+        case .rangeOnly:        return "Range"
+        case .shortGameOnly:    return "Short Game"
+        case .puttingGreenOnly: return "Putting Green"
+        }
+    }
+
+    var subtitle: String {
+        switch self {
+        case .fullFacility:     return "Range + short + putting"
+        case .rangeOnly:        return "Hitting bays only"
+        case .shortGameOnly:    return "Chipping + sand"
+        case .puttingGreenOnly: return "Putting only"
+        }
+    }
+
+    var hasFullSwingArea: Bool {
+        self == .fullFacility || self == .rangeOnly
+    }
+    var hasShortGameArea: Bool {
+        self == .fullFacility || self == .shortGameOnly
+    }
+    var hasPuttingGreen: Bool {
+        self == .fullFacility || self == .puttingGreenOnly
+    }
+}
+
+// MARK: - Club category (internal, 8 values that drills reference)
 
 enum ClubCategory: String, Codable, CaseIterable, Identifiable, Hashable {
     case putter
@@ -14,132 +52,71 @@ enum ClubCategory: String, Codable, CaseIterable, Identifiable, Hashable {
     case driver
 
     var id: String { rawValue }
-
-    var displayName: String {
-        switch self {
-        case .putter:        return "Putter"
-        case .wedges:        return "Wedges"
-        case .shortIrons:    return "Short Irons"
-        case .midIrons:      return "Mid Irons"
-        case .longIrons:     return "Long Irons"
-        case .hybrids:       return "Hybrids"
-        case .fairwayWoods:  return "Fairway Woods"
-        case .driver:        return "Driver"
-        }
-    }
-
-    var symbolName: String {
-        switch self {
-        case .putter:        return "circle.dotted"
-        case .wedges:        return "leaf"
-        case .shortIrons:    return "target"
-        case .midIrons:      return "scope"
-        case .longIrons:     return "arrow.up.right"
-        case .hybrids:       return "arrow.triangle.merge"
-        case .fairwayWoods:  return "arrow.up.forward"
-        case .driver:        return "bolt"
-        }
-    }
 }
 
-// MARK: - Facilities
-// Where the user is practicing. Affects which drills are feasible.
+// MARK: - Club bucket (user-facing, 4 tiles)
 
-enum Facility: String, Codable, CaseIterable, Identifiable, Hashable {
-    case fullFacility       // range + short game + putting green
-    case rangeShortGame     // range + short game, no putting
-    case rangePutting       // range + putting green, no short game
-    case rangeOnly          // hitting bays only
-    case shortGameOnly
-    case puttingGreenOnly
-    case simulator
-    case home               // mat, putting indoor, net
+enum ClubBucket: String, Codable, CaseIterable, Identifiable, Hashable {
+    case putter
+    case wedges
+    case irons      // short + mid + long irons
+    case driver     // driver + fairway woods + hybrids
 
     var id: String { rawValue }
 
     var displayName: String {
         switch self {
-        case .fullFacility:     return "Full Practice Facility"
-        case .rangeShortGame:   return "Range + Short Game"
-        case .rangePutting:     return "Range + Putting Green"
-        case .rangeOnly:        return "Driving Range Only"
-        case .shortGameOnly:    return "Short Game Area"
-        case .puttingGreenOnly: return "Putting Green"
-        case .simulator:        return "Simulator / Indoor"
-        case .home:             return "Home / Mat"
+        case .putter: return "Putter"
+        case .wedges: return "Wedges"
+        case .irons:  return "Irons"
+        case .driver: return "Driver"
         }
     }
 
-    var symbolName: String {
+    /// The internal club categories this bucket maps to.
+    var clubs: Set<ClubCategory> {
         switch self {
-        case .fullFacility:     return "star.circle"
-        case .rangeShortGame:   return "flag.2.crossed"
-        case .rangePutting:     return "flag.checkered"
-        case .rangeOnly:        return "figure.golf"
-        case .shortGameOnly:    return "leaf.circle"
-        case .puttingGreenOnly: return "circle.dotted"
-        case .simulator:        return "tv"
-        case .home:             return "house"
+        case .putter: return [.putter]
+        case .wedges: return [.wedges]
+        case .irons:  return [.shortIrons, .midIrons, .longIrons]
+        case .driver: return [.driver, .fairwayWoods, .hybrids]
         }
     }
 
-    /// Whether this facility supports a given practice zone.
-    var hasFullSwingArea: Bool {
+    /// Whether this bucket can be used at the given facility.
+    /// (Driver on a putting green doesn't make sense, etc.)
+    func fits(at facility: Facility) -> Bool {
         switch self {
-        case .fullFacility, .rangeShortGame, .rangePutting, .rangeOnly, .simulator, .home:
-            return true
-        case .shortGameOnly, .puttingGreenOnly:
-            return false
-        }
-    }
-
-    var hasShortGameArea: Bool {
-        switch self {
-        case .fullFacility, .rangeShortGame, .shortGameOnly:
-            return true
-        case .simulator:
-            return true     // many sims have short game
-        case .home:
-            return true     // chip net counts
-        case .rangePutting, .rangeOnly, .puttingGreenOnly:
-            return false
-        }
-    }
-
-    var hasPuttingGreen: Bool {
-        switch self {
-        case .fullFacility, .rangePutting, .puttingGreenOnly, .home, .simulator:
-            return true
-        case .rangeShortGame, .rangeOnly, .shortGameOnly:
-            return false
+        case .putter: return facility.hasPuttingGreen || facility.hasFullSwingArea
+        case .wedges: return facility.hasShortGameArea || facility.hasFullSwingArea
+        case .irons:  return facility.hasFullSwingArea
+        case .driver: return facility.hasFullSwingArea
         }
     }
 }
 
-// MARK: - Skill Areas
-// Granular skills tracked by the Bayesian model.
+// MARK: - Skill areas (15 areas tracked by the Bayesian model)
 
 enum SkillArea: String, Codable, CaseIterable, Identifiable, Hashable {
     case puttingShort       // ≤6 ft
     case puttingMid         // 6-15 ft
     case puttingLag         // 15+ ft
-    case puttingBreak       // breaking putts / reads
+    case puttingBreak
 
-    case chippingGreenside  // within 20 yd, low
+    case chippingGreenside  // within 20 yd
     case chippingPitch      // 20-50 yd
     case wedgePartial       // 50-100 yd partial wedges
 
-    case ironShort          // PW / 9
-    case ironMid            // 7 / 8
-    case ironLong           // 4 / 5 / 6
+    case ironShort
+    case ironMid
+    case ironLong
 
-    case woodsHybrid        // hybrids + fairway woods
-
+    case woodsHybrid
     case driverAccuracy
     case driverDistance
 
-    case mentalPressure     // closing under pressure
-    case transferRandom     // random / mixed shots
+    case mentalPressure
+    case transferRandom
 
     var id: String { rawValue }
 
@@ -163,34 +140,6 @@ enum SkillArea: String, Codable, CaseIterable, Identifiable, Hashable {
         }
     }
 
-    /// Which club categories enable practicing this skill.
-    var relevantClubs: Set<ClubCategory> {
-        switch self {
-        case .puttingShort, .puttingMid, .puttingLag, .puttingBreak:
-            return [.putter]
-        case .chippingGreenside:
-            return [.wedges, .shortIrons]
-        case .chippingPitch:
-            return [.wedges]
-        case .wedgePartial:
-            return [.wedges]
-        case .ironShort:
-            return [.shortIrons]
-        case .ironMid:
-            return [.midIrons]
-        case .ironLong:
-            return [.longIrons]
-        case .woodsHybrid:
-            return [.hybrids, .fairwayWoods]
-        case .driverAccuracy, .driverDistance:
-            return [.driver]
-        case .mentalPressure, .transferRandom:
-            // pressure & transfer can be practiced with anything
-            return Set(ClubCategory.allCases)
-        }
-    }
-
-    /// Which facility zone is required.
     var facilityRequirement: FacilityZone {
         switch self {
         case .puttingShort, .puttingMid, .puttingLag, .puttingBreak:
@@ -226,75 +175,55 @@ enum FacilityZone {
     }
 }
 
-// MARK: - Session Phase
-// The flow of a practice session.
+// MARK: - Session phase
 
 enum SessionPhase: String, Codable, CaseIterable {
     case warmup
-    case block            // focused block on a weakness
-    case transfer         // random / pressure
+    case block        // focused block on a weakness
+    case transfer     // random / pressure
     case cooldown
 
     var displayName: String {
         switch self {
         case .warmup:    return "Warm-up"
-        case .block:     return "Focus Block"
-        case .transfer:  return "Transfer / Pressure"
+        case .block:     return "Focus"
+        case .transfer:  return "Pressure"
         case .cooldown:  return "Cool-down"
-        }
-    }
-
-    var symbolName: String {
-        switch self {
-        case .warmup:    return "flame"
-        case .block:     return "scope"
-        case .transfer:  return "shuffle"
-        case .cooldown:  return "leaf"
         }
     }
 }
 
-// MARK: - Rating
-// User's self-assessment after a drill.
+// MARK: - Rating (3-point scale)
 
 enum DrillRating: Int, Codable, CaseIterable, Identifiable {
-    case poor = 1
-    case belowAverage = 2
-    case average = 3
-    case good = 4
-    case excellent = 5
+    case struggled = 1
+    case solid     = 3
+    case dialed    = 5
 
     var id: Int { rawValue }
 
     var displayName: String {
         switch self {
-        case .poor:          return "Poor"
-        case .belowAverage:  return "Below"
-        case .average:       return "Average"
-        case .good:          return "Good"
-        case .excellent:     return "Excellent"
+        case .struggled: return "Struggled"
+        case .solid:     return "Solid"
+        case .dialed:    return "Dialed"
         }
     }
 
-    var symbolName: String {
+    var emoji: String {
         switch self {
-        case .poor:          return "xmark.circle.fill"
-        case .belowAverage:  return "minus.circle.fill"
-        case .average:       return "equal.circle.fill"
-        case .good:          return "checkmark.circle.fill"
-        case .excellent:     return "star.circle.fill"
+        case .struggled: return "😬"
+        case .solid:     return "👌"
+        case .dialed:    return "🔥"
         }
     }
 
-    /// Mapped to a [0,1] "success fraction" for Bayesian updates.
-    /// 1 = perfect execution, 0 = total failure.
+    /// Mapped to a [0, 1] "success fraction" for Bayesian updates.
     var successFraction: Double {
         switch self {
-        case .poor:          return 0.10
-        case .belowAverage:  return 0.30
-        case .average:       return 0.55
-        case .good:          return 0.75
-        case .excellent:     return 0.92
+        case .struggled: return 0.10
+        case .solid:     return 0.55
+        case .dialed:    return 0.92
         }
     }
 }
